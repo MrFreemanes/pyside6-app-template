@@ -4,11 +4,6 @@ from multiprocessing.queues import Queue
 
 from utils.bridge.base_bridge import BaseBridge
 
-from logs.logger_cfg import cfg
-
-logging.config.dictConfig(cfg)
-logger = logging.getLogger('log_bridge')
-
 
 class Bridge(BaseBridge):
     """
@@ -19,13 +14,14 @@ class Bridge(BaseBridge):
         super().__init__(task_q, result_q, interval)
 
     def _handle_result(self, result):
+        """ПРИМЕР. Передача сигнала в зависимости от результата."""
         stat = result['status']
         if stat == 'run':
             self.process_signal.emit(result)
-            logger.debug('Получены промежуточные данные')
+            self.logger.debug('Получены промежуточные данные')
         elif stat == 'done':
             self.done_signal.emit(result)
-            logger.debug('Получены последние данные')
+            self.logger.debug('Получены последние данные')
         else:
             self.error_signal.emit(f'Статус не определен: {stat}')
-            logger.warning('Статус не определен: %s', stat)
+            self.logger.warning('Статус не определен: %s', stat)

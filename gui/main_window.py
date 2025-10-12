@@ -1,41 +1,25 @@
-from PySide6.QtWidgets import QMainWindow
-
+from gui.base_window import BaseWindow
 from gui.ui.ui_untitled import Ui_MainWindow
-from gui.dialogs.error_dialog import ErrorDialog
 from gui.widgets.graph.graph import Graph
 
 
-class MainWindow(QMainWindow):
-    """
-    Главный класс приложения.
-    """
-
-    def __init__(self, bridge):
-        super().__init__()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-
-        # главные детали
-        self.bridge = bridge
-        self.graph = Graph(self.ui.group_box_T1, title='Числа Фибоначчи')
-
-        # подключение сигналов
-        self.bridge.error_signal.connect(self._show_dialog_error)
+class MainWindow(BaseWindow):
+    def _connect_bridge_signals(self) -> None:
+        """Подключение сигналов из моста."""
         self.bridge.done_signal.connect(self._done_graph)
         self.bridge.process_signal.connect(self._show_process_graph)
 
-        # подключение виджетов 
+    def _setup_ui(self) -> None:
+        """Обозначение главных переменных."""
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.graph = Graph(self.ui.group_box_T1, title='Числа Фибоначчи')
+
+    def _connect_widget(self):
+        """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
-    @staticmethod
-    def _show_dialog_error(message: str) -> None:
-        """
-        Подключается к сигналу который уведомляет о промежуточных результатах.
-        :param message: Сообщение, которое будет показано пользователю.
-        """
-        dialog = ErrorDialog(message)
-        dialog.exec()  # модальное окно
-
+    # --- реализация приложения ---
     def _run(self) -> None:
         """ПРИМЕР.
         Отключает виджеты при начале расчетов.
@@ -43,6 +27,7 @@ class MainWindow(QMainWindow):
         """
         self.ui.btn_calc_T1.setEnabled(False)
         self.bridge.send_task(100)
+        self.logger.debug('Задача отправлена')
 
     def _show_process_graph(self, result) -> None:
         """ПРИМЕР.
@@ -52,6 +37,7 @@ class MainWindow(QMainWindow):
         """
         self.ui.progress_bar_T1.setValue(result['progress'])
         self.graph.plot_realtime(*result['data'])
+        self.logger.debug('Получено промежуточное значение')
 
     def _done_graph(self, result) -> None:
         """ПРИМЕР.
@@ -63,3 +49,4 @@ class MainWindow(QMainWindow):
         self.ui.progress_bar_T1.setValue(100)
         self.graph.plot_final(*result['data'])
         self.ui.btn_calc_T1.setEnabled(True)
+        self.logger.debug('Расчет окончен. График постоен')

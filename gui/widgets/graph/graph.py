@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget
 
 from gui.widgets.graph.base_graph import BaseGraph
+from gui.helpers.widget_overrides import attach_context_menu
 
 
 class Graph(BaseGraph):
@@ -13,6 +14,10 @@ class Graph(BaseGraph):
 
         self.x = []
         self.y = []
+        self.show_grid()
+        self.set_label('Номер','Значение')
+        # Создаем контекстное меню у графика
+        attach_context_menu(self.canvas, {'Сохранить график': self.save_graph})
 
     def plot_realtime(self, new_x: int, new_y: int) -> None:
         """Отрисовка графика при получении промежуточных данных"""
@@ -21,6 +26,7 @@ class Graph(BaseGraph):
         self.x.append(new_x)
         self.y.append(new_y)
 
+        self.show_grid()
         self.ax.plot(self.x, self.y, color='blue')
         self.autoscale()
 
@@ -31,8 +37,12 @@ class Graph(BaseGraph):
         self.x.append(x)
         self.y.append(y)
 
+        self.show_grid()
         self.ax.plot(self.x, self.y, color='green')
         self.autoscale()
 
         self.x.clear()
         self.y.clear()
+
+    def save_graph(self):
+        print('Сохранено!')

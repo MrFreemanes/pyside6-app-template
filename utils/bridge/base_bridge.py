@@ -7,9 +7,6 @@ from PySide6.QtCore import QObject, Signal, QTimer
 
 from logs.logger_cfg import cfg
 
-logging.config.dictConfig(cfg)
-logger = logging.getLogger('log_bridge')
-
 
 class BaseBridge(QObject):
     """
@@ -29,6 +26,9 @@ class BaseBridge(QObject):
         """
         super().__init__()
 
+        logging.config.dictConfig(cfg)
+        self.logger = logging.getLogger('log_bridge')
+
         self.task_q = task_q
         self.result_q = result_q
         self.interval = interval
@@ -42,13 +42,13 @@ class BaseBridge(QObject):
         """Отправить задачу в очередь (с безопасной проверкой)."""
         try:
             if self.task_q.full():
-                self.error_signal.emit('Очередь задач переполнена — воркер занят.')
-                logger.warning('Очередь \"task_q\" переполнена')
+                self.error_signal.emit('Очередь задач переполнена')
+                self.logger.warning('Очередь \"task_q\" переполнена')
             else:
                 self.task_q.put(params)
-                logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
+                self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
         except Exception as e:
-            logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
+            self.logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
             self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
 
     def check_result(self) -> None:
@@ -56,12 +56,13 @@ class BaseBridge(QObject):
         try:
             while not self.result_q.empty():
                 result = self.result_q.get_nowait()
-                logger.debug('Получены данные из \"result_q\"')
+                self.logger.debug('Получены данные из \"result_q\"')
                 self._handle_result(result)
         except Exception as e:
-            logger.error('Ошибка при получении результата из \"result_q\": %s', e)
+            self.logger.error('Ошибка при получении результата из \"result_q\": %s', e)
             self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
     def _handle_result(self, result):
         """Обработка полученного результата (реализуется в наследнике)."""
+        self.logger.error('_handle_result() не реализован в %s', self.__class__.__name__)
         raise NotImplementedError(f'{self.__class__.__name__}._handle_result() не реализован')
