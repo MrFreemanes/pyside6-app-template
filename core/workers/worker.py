@@ -4,6 +4,11 @@ from functools import lru_cache
 
 
 def worker(task_q: mp.Queue, result_q: mp.Queue):
+    """
+    CPU-GPU-IO нагрузка. Используется как отдельный процесс.
+    :param task_q: Очередь с задачами
+    :param result_q: Очередь с результатами
+    """
     while True:
         item = task_q.get()
 
@@ -19,7 +24,7 @@ def worker(task_q: mp.Queue, result_q: mp.Queue):
             if num not in check_list:
                 result_q.put({'status': 'run', 'progress': int(num / item * 100), 'data': (num, res)})
                 check_list.add(num)
-                time.sleep(0.05)
+                time.sleep(0.05) # видимость нагрузки
             return res
 
         result = calc(item)

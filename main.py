@@ -1,11 +1,17 @@
 import sys
 import multiprocessing as mp
+import logging
+from logging import config
 
 from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
 from core.workers.worker import worker
-from utils.bridge import Bridge
+from utils.bridge.bridge import Bridge
+from logs.logger_cfg import cfg
+
+logging.config.dictConfig(cfg)
+logger = logging.getLogger('log_main')
 
 
 def main():
@@ -16,10 +22,8 @@ def main():
     w.start()
 
     app = QApplication(sys.argv)
-
-    window = MainWindow(Bridge(task_q, result_q))
+    window = MainWindow(Bridge(task_q, result_q, interval=50))
     window.show()
-
     app.exec()
 
     w.terminate()
@@ -27,4 +31,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as err:
+        logger.exception('MAIN_ERROR: %s', err)

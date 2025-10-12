@@ -1,5 +1,14 @@
 import multiprocessing as mp
+import logging
+from logging import config
+from typing import Any
+
 from PySide6.QtCore import QObject, Signal, QTimer
+
+from logs.logger_cfg import cfg
+
+logging.config.dictConfig(cfg)
+logger = logging.getLogger('log_bridge')
 
 
 class BaseBridge(QObject):
@@ -8,10 +17,9 @@ class BaseBridge(QObject):
     Работает через multiprocessing.Queue и Qt-сигналы.
     """
 
-    # --- Сигналы ---
-    error_signal = Signal(str)  # Ошибка воркера
-    process_signal = Signal(dict)  # Прогресс/статус задачи
-    done_signal = Signal(dict)  # Завершённый результат
+    error_signal = Signal(Any)  # Ошибка воркера
+    process_signal = Signal(Any)  # Прогресс/статус задачи
+    done_signal = Signal(Any)  # Завершённый результат
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue, interval: int = 200):
         """
@@ -25,35 +33,35 @@ class BaseBridge(QObject):
         self.result_q = result_q
         self.interval = interval
 
-        # Таймер для регулярной проверки результатов
+        # Таймер для проверки результатов
         self._timer = QTimer()
         self._timer.timeout.connect(self.check_result)
-        self._timer.start(100)
+        self._timer.start(self.interval)
 
     def send_task(self, params) -> None:
         """Отправить задачу в очередь (с безопасной проверкой)."""
         try:
             if self.task_q.full():
-                self.error_signal.emit("Очередь задач переполнена — воркер занят.")
+                self.error_signal.emit('Очередь задач переполнена — воркер занят.')
+                logger.warning('Очередь \"task_q\" переполнена')
             else:
                 self.task_q.put(params)
+                logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
         except Exception as e:
-            # logger
-            self.error_signal.emit(f"Ошибка при отправке задачи: {e}")
+            logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
+            self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
 
     def check_result(self) -> None:
         """Проверить очередь результатов и эмитить нужный сигнал."""
         try:
             while not self.result_q.empty():
                 result = self.result_q.get_nowait()
+                logger.debug('Получены данные из \"result_q\"')
                 self._handle_result(result)
         except Exception as e:
-            # logger
-            self.error_signal.emit(f"Ошибка при получении результата: {e}")
+            logger.error('Ошибка при получении результата из \"result_q\": %s', e)
+            self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
     def _handle_result(self, result):
         """Обработка полученного результата (реализуется в наследнике)."""
-        raise NotImplementedError(f"{self.__class__.__name__}._handle_result() не реализован")
-
-
-t = BaseBridge(mp.Queue(), mp.Queue())
+        raise NotImplementedError(f'{self.__class__.__name__}._handle_result() не реализован')
