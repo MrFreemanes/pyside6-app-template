@@ -1,6 +1,6 @@
 from gui.base_window import BaseWindow
 from gui.ui.ui_untitled import Ui_MainWindow
-from gui.widgets.graph.graph import Graph
+from gui.widgets.graphs.graph import Graph
 
 
 class MainWindow(BaseWindow):
@@ -13,9 +13,10 @@ class MainWindow(BaseWindow):
         """Обозначение главных переменных."""
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle('Расчет чисел Фибоначчи')
         self.graph = Graph(self.ui.group_box_T1, title='Числа Фибоначчи')
 
-    def _connect_widget(self):
+    def _connect_widget(self) -> None:
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
@@ -27,6 +28,7 @@ class MainWindow(BaseWindow):
         """
         self.ui.btn_calc_T1.setEnabled(False)
         self.bridge.send_task(100)
+
         self.logger.debug('Задача отправлена')
 
     def _show_process_graph(self, result) -> None:
@@ -37,6 +39,7 @@ class MainWindow(BaseWindow):
         """
         self.ui.progress_bar_T1.setValue(result['progress'])
         self.graph.plot_realtime(*result['data'])
+
         self.logger.debug('Получено промежуточное значение')
 
     def _done_graph(self, result) -> None:
@@ -46,7 +49,8 @@ class MainWindow(BaseWindow):
         Снимает блокировку ранее отключенных виджетов.
         :param result: Результат вычислений ().
         """
-        self.ui.progress_bar_T1.setValue(100)
         self.graph.plot_final(*result['data'])
+        self.ui.progress_bar_T1.setValue(100)
         self.ui.btn_calc_T1.setEnabled(True)
+
         self.logger.debug('Расчет окончен. График постоен')

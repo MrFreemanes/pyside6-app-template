@@ -1,8 +1,7 @@
-import logging
-from logging import config
 from multiprocessing.queues import Queue
 
-from utils.bridge.base_bridge import BaseBridge
+from core.bridges.base_bridge import BaseBridge
+from config.config import Status
 
 
 class Bridge(BaseBridge):
@@ -13,13 +12,12 @@ class Bridge(BaseBridge):
     def __init__(self, task_q: Queue, result_q: Queue, *, interval: int = 100):
         super().__init__(task_q, result_q, interval)
 
-    def _handle_result(self, result):
-        """ПРИМЕР. Передача сигнала в зависимости от результата."""
+    def _handle_result(self, result: dict) -> None:
+        """ПРИМЕР. Передача сигнала в зависимости от статуса результата."""
         stat = result['status']
-        if stat == 'run':
+        if stat == Status.RUN:
             self.process_signal.emit(result)
-            self.logger.debug('Получены промежуточные данные')
-        elif stat == 'done':
+        elif stat == Status.DONE:
             self.done_signal.emit(result)
             self.logger.debug('Получены последние данные')
         else:

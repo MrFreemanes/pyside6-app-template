@@ -46,7 +46,16 @@ cfg = {
         'file_bridge': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': os.path.join(log_dir, "bridge.log"),
+            'filename': os.path.join(log_dir, "bridges.log"),
+            'formatter': 'file_msg',
+            'maxBytes': 1 * 1024 * 1024,
+            'backupCount': 3,
+            'encoding': 'utf-8'
+        },
+        'file_worker': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'filename': os.path.join(log_dir, "worker.log"),
             'formatter': 'file_msg',
             'maxBytes': 1 * 1024 * 1024,
             'backupCount': 3,
@@ -67,6 +76,11 @@ cfg = {
         'log_bridge': {
             'level': 'DEBUG',
             'handlers': ['console', 'file_bridge'],
+            'propagate': False
+        },
+        'log_worker': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file_worker'],
             'propagate': False
         }
     }

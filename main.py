@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
 from core.workers.worker import worker
-from utils.bridge.bridge import Bridge
+from core.bridges.bridge import Bridge
 from logs.logger_cfg import cfg
 
 logging.config.dictConfig(cfg)

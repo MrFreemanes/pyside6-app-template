@@ -1,12 +1,13 @@
 from PySide6.QtWidgets import QWidget
 
-from gui.widgets.graph.base_graph import BaseGraph
+from gui.widgets.graphs.base_graph import BaseGraph
 from gui.helpers.widget_overrides import attach_context_menu
 
 
 class Graph(BaseGraph):
     """
     Пример реализации Класса BaseGraph.
+    Изменено контекстное меню виджета FigureCanvas (self.canvas).
     """
 
     def __init__(self, target_widget: QWidget, *, title: str = 'График'):
@@ -14,8 +15,9 @@ class Graph(BaseGraph):
 
         self.x = []
         self.y = []
+
         self.show_grid()
-        self.set_label('Номер','Значение')
+
         # Создаем контекстное меню у графика
         attach_context_menu(self.canvas, {'Сохранить график': self.save_graph})
 
@@ -31,7 +33,7 @@ class Graph(BaseGraph):
         self.autoscale()
 
     def plot_final(self, x: int, y: int) -> None:
-        """Отрисовка графика с финальным видом"""
+        """Отрисовка финального графика"""
         self.clear()
 
         self.x.append(x)

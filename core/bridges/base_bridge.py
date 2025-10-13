@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import logging
 from logging import config
+from abc import abstractmethod
 from typing import Any
 
 from PySide6.QtCore import QObject, Signal, QTimer
@@ -38,7 +39,7 @@ class BaseBridge(QObject):
         self._timer.timeout.connect(self.check_result)
         self._timer.start(self.interval)
 
-    def send_task(self, params) -> None:
+    def send_task(self, params: Any) -> None:
         """Отправить задачу в очередь (с безопасной проверкой)."""
         try:
             if self.task_q.full():
@@ -62,7 +63,7 @@ class BaseBridge(QObject):
             self.logger.error('Ошибка при получении результата из \"result_q\": %s', e)
             self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
-    def _handle_result(self, result):
+    @abstractmethod
+    def _handle_result(self, result: Any) -> None:
         """Обработка полученного результата (реализуется в наследнике)."""
-        self.logger.error('_handle_result() не реализован в %s', self.__class__.__name__)
-        raise NotImplementedError(f'{self.__class__.__name__}._handle_result() не реализован')
+        pass

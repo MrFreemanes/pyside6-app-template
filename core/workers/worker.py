@@ -2,6 +2,7 @@ import multiprocessing as mp
 import time
 from functools import lru_cache
 
+from config.config import Status
 
 def worker(task_q: mp.Queue, result_q: mp.Queue):
     """
@@ -22,11 +23,11 @@ def worker(task_q: mp.Queue, result_q: mp.Queue):
                 return 1
             res = calc(num - 1) + calc(num - 2)
             if num not in check_list:
-                result_q.put({'status': 'run', 'progress': int(num / item * 100), 'data': (num, res)})
+                result_q.put({'status': Status.RUN, 'progress': int(num / item * 100), 'data': (num, res)})
                 check_list.add(num)
                 time.sleep(0.05) # видимость нагрузки
             return res
 
         result = calc(item)
 
-        result_q.put({'status': 'done', 'data': (item, result)})
+        result_q.put({'status': Status.DONE, 'data': (item, result)})

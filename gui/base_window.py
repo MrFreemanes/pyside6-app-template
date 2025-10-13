@@ -5,7 +5,7 @@ from logging import config
 from PySide6.QtWidgets import QMainWindow, QApplication
 
 from gui.dialogs.error_dialog import ErrorDialog
-from utils.bridge.base_bridge import BaseBridge
+from core.bridges.base_bridge import BaseBridge
 from logs.logger_cfg import cfg
 
 
@@ -15,12 +15,13 @@ class BaseWindow(QMainWindow):
     Обеспечивает:
       - автоматическое подключение логгера
       - базовую обработку ошибок через диалог
-      - связку с мостом (bridge)
+      - связку с мостом (bridges)
       - шаблон для настройки интерфейса и сигналов
     """
 
     def __init__(self, bridge: BaseBridge):
         super().__init__()
+
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger('log_gui')
         self.bridge = bridge
