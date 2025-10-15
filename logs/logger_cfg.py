@@ -1,11 +1,16 @@
 import os
 
-APP_NAME = "MyApp"
 
-# Путь к папке в AppData
-appdata_path = os.getenv("APPDATA")
-log_dir = os.path.join(appdata_path, APP_NAME, "logs")
-os.makedirs(log_dir, exist_ok=True)
+def path_to_file(name: str) -> str:
+    APP_NAME = "MyApp"
+
+    # Путь к папке в AppData
+    appdata_path = os.getenv("APPDATA")
+    log_dir = os.path.join(appdata_path, APP_NAME, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    return os.path.join(log_dir, name)
+
 
 cfg = {
     'version': 1,
@@ -28,7 +33,7 @@ cfg = {
         'file_main': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': os.path.join(log_dir, "main.log"),
+            'filename': path_to_file("main.log"),
             'formatter': 'file_msg',
             'maxBytes': 5 * 1024 * 1024,  # 5 MB
             'backupCount': 5,  # хранить 5 старых файлов
@@ -37,7 +42,7 @@ cfg = {
         'file_gui': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': os.path.join(log_dir, "gui.log"),
+            'filename': path_to_file("gui.log"),
             'formatter': 'file_msg',
             'maxBytes': 5 * 1024 * 1024,
             'backupCount': 3,
@@ -46,7 +51,7 @@ cfg = {
         'file_bridge': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': os.path.join(log_dir, "bridges.log"),
+            'filename': path_to_file("bridges.log"),
             'formatter': 'file_msg',
             'maxBytes': 1 * 1024 * 1024,
             'backupCount': 3,
@@ -55,7 +60,7 @@ cfg = {
         'file_worker': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': os.path.join(log_dir, "worker.log"),
+            'filename': path_to_file("worker.log"),
             'formatter': 'file_msg',
             'maxBytes': 1 * 1024 * 1024,
             'backupCount': 3,

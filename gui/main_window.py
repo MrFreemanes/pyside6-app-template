@@ -4,11 +4,6 @@ from gui.widgets.graphs.graph import Graph
 
 
 class MainWindow(BaseWindow):
-    def _connect_bridge_signals(self) -> None:
-        """Подключение сигналов из моста."""
-        self.bridge.done_signal.connect(self._done_graph)
-        self.bridge.process_signal.connect(self._show_process_graph)
-
     def _setup_ui(self) -> None:
         """Обозначение главных переменных."""
         self.ui = Ui_MainWindow()
@@ -19,6 +14,11 @@ class MainWindow(BaseWindow):
     def _connect_widget(self) -> None:
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
+
+    def _connect_bridge_signals(self) -> None:
+        """Подключение сигналов из моста."""
+        self.bridge.done_signal.connect(self._done_graph)
+        self.bridge.process_signal.connect(self._show_process_graph)
 
     # --- реализация приложения ---
     def _run(self) -> None:

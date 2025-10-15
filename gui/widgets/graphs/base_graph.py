@@ -76,5 +76,5 @@ class BaseGraph(ABC):
         self.canvas.draw_idle()
 
     def save_graph(self) -> None:
-        # Реализовать сохранение графика
+        # TODO: метод для сохранения текущего графика
         pass

@@ -18,7 +18,6 @@ class Graph(BaseGraph):
 
         self.show_grid()
 
-        # Создаем контекстное меню у графика
         attach_context_menu(self.canvas, {'Сохранить график': self.save_graph})
 
     def plot_realtime(self, new_x: int, new_y: int) -> None:
