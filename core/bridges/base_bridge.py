@@ -19,7 +19,7 @@ class BaseBridge(QObject):
     process_signal = Signal(Any)  # Прогресс/статус задачи
     done_signal = Signal(Any)  # Завершённый результат
 
-    def __init__(self, task_q: mp.Queue, result_q: mp.Queue, interval: int = 200):
+    def __init__(self, task_q: mp.Queue, result_q: mp.Queue, *, interval: int = 200):
         """
         :param task_q: Очередь задач для воркеров
         :param result_q: Очередь результатов от воркеров
