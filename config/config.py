@@ -15,6 +15,7 @@ class Task:
     Датакласс для передачи задач в worker.
     """
     task: str
+    num: int
 
 
 @dataclass(repr=True)

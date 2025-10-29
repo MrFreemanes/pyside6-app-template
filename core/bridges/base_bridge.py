@@ -7,6 +7,7 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QTimer
 
 from logs.logger_cfg import cfg
+from config.config import Task, Result
 
 
 class BaseBridge(QObject):
@@ -39,7 +40,7 @@ class BaseBridge(QObject):
         self._timer.timeout.connect(self.check_result)
         self._timer.start(self.interval)
 
-    def send_task(self, params: Any) -> None:
+    def send_task(self, params: Task) -> None:
         """Отправить задачу в очередь (с безопасной проверкой)."""
         try:
             if self.task_q.full():
@@ -64,6 +65,6 @@ class BaseBridge(QObject):
             self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
     @abstractmethod
-    def _handle_result(self, result: Any) -> None:
+    def _handle_result(self, result: Result) -> None:
         """Обработка полученного результата (реализуется в наследнике)."""
         pass
