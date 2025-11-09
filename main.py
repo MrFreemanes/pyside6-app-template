@@ -27,7 +27,7 @@ def main():
     window.show()
     app.exec()
 
-    task_q.put(None)
+    worker.stop()
     w.terminate()
     w.join(timeout=1)
 

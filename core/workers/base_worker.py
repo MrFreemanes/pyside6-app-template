@@ -1,7 +1,7 @@
 import multiprocessing as mp
 import logging
 from logging import config
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Callable
 
 from config.config import Status, Task, Result
@@ -26,6 +26,7 @@ class BaseWorker(ABC):
         """
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger('log_worker')
+        self.logger.debug('Worker инициализирован')
 
         self._task_q: mp.Queue = task_q
         self._result_q: mp.Queue = result_q
@@ -71,3 +72,7 @@ class BaseWorker(ABC):
         else:
             self._result_q.put(Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {task_name}'))
             self.logger.error('Неизвестная задача: %s', task_name)
+
+    def stop(self) -> None:
+        self._task_q.put(None)
+        self.logger.debug('Worker остановлен')
