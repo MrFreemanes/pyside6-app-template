@@ -6,7 +6,7 @@ from logging import config
 from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
-from core.workers.worker import worker
+from core.workers.worker import Worker
 from core.bridges.bridge import Bridge
 from logs.logger_cfg import cfg
 
@@ -18,7 +18,8 @@ def main():
     task_q = mp.Queue()
     result_q = mp.Queue()
 
-    w = mp.Process(target=worker, args=(task_q, result_q), daemon=True)
+    worker = Worker(task_q, result_q)
+    w = mp.Process(target=worker.run, daemon=True)
     w.start()
 
     app = QApplication(sys.argv)

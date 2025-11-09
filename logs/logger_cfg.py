@@ -39,7 +39,7 @@ cfg = {
         'file_bridge': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': path_to_log("bridges.log"),
+            'filename': path_to_log("bridge.log"),
             'formatter': 'file_msg',
             'maxBytes': 1 * 1024 * 1024,
             'backupCount': 3,

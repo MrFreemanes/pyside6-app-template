@@ -14,7 +14,7 @@ class Task:
     """
     Датакласс для передачи задач в worker.
     """
-    task: str
+    task_name: str
     num: int
 
 
