@@ -67,11 +67,17 @@ class BaseWorker(ABC):
         :param task_name: Имя задачи.
         """
         handler = self.task_map.get(task_name)
-        if handler:
-            handler(self)
-        else:
+        if not handler:
             self._result_q.put(Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {task_name}'))
             self.logger.error('Неизвестная задача: %s', task_name)
+            return
+
+        try:
+            handler(self)
+        except Exception as e:
+            self._result_q.put(Result((), Status.ERROR, 100,
+                                      text_error=f'Ошибка при выполнении задачи {task_name}: {e}'))
+            self.logger.exception('Ошибка при выполнении задачи %s', task_name)
 
     def stop(self) -> None:
         self._task_q.put(None)

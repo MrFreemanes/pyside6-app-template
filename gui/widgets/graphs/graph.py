@@ -45,5 +45,3 @@ class Graph(BaseGraph):
         self.x.clear()
         self.y.clear()
 
-    def save_graph(self):
-        print('Сохранено!')

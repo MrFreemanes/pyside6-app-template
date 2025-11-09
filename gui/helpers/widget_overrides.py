@@ -20,9 +20,6 @@ def attach_context_menu(widget: QWidget, action: dict) -> None:
     :return:
     """
 
-    # if hasattr(widget, "setContextMenuPolicy"): # не работает
-    #     raise TypeError(f"Виджет {widget} не поддерживает контекстное меню.")
-
     widget.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def show_menu(pos):
