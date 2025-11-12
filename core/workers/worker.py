@@ -14,7 +14,7 @@ class Worker(BaseWorker):
     def calc(self) -> None:
         """
         Пример метода с CPU нагрузкой.
-        :return:
+        :self.item: Task() from config/config.py
         """
         number = self.item.num
         check_list = {1, 2}
