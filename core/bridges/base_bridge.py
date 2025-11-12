@@ -37,7 +37,7 @@ class BaseBridge(QObject):
 
         # Таймер для проверки результатов
         self._timer = QTimer()
-        self._timer.timeout.connect(self.check_result)
+        self._timer.timeout.connect(self._check_result)
         self._timer.start(self.interval)
 
     def send_task(self, params: Task) -> None:
@@ -53,7 +53,7 @@ class BaseBridge(QObject):
             self.logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
             self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
 
-    def check_result(self) -> None:
+    def _check_result(self) -> None:
         """Проверить очередь результатов и эмитить нужный сигнал."""
         try:
             while not self.result_q.empty():

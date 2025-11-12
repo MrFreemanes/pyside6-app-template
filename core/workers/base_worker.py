@@ -1,3 +1,4 @@
+import queue
 import multiprocessing as mp
 import logging
 from logging import config
@@ -54,14 +55,17 @@ class BaseWorker(ABC):
         w.start()
         """
         while True:
-            self.item: Task = self._task_q.get()
-            self.logger.debug('Получена задача: %s', self.item)
+            try:
+                self.item: Task = self._task_q.get(timeout=1)  # таймаут в секундах
+                self.logger.debug('Получена задача: %s', self.item)
+            except queue.Empty:
+                continue
 
             if self.item is None: break
 
-            self.distributor(self.item.task_name)
+            self._distributor(self.item.task_name)
 
-    def distributor(self, task_name: str) -> None:
+    def _distributor(self, task_name: str) -> None:
         """
         Автоматически вызывает метод по имени в классе наследнике, если он был добавлен через register_task.
         :param task_name: Имя задачи.

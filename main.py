@@ -15,7 +15,7 @@ logger = logging.getLogger('log_main')
 
 
 def main():
-    task_q = mp.Queue()
+    task_q = mp.Queue(maxsize=3)
     result_q = mp.Queue()
 
     worker = Worker(task_q, result_q)

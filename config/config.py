@@ -11,9 +11,7 @@ class Status:
 
 @dataclass(repr=True)
 class Task:
-    """
-    Датакласс для передачи задач в worker.
-    """
+    """Датакласс для передачи задач в worker."""
     task_name: str
     num: int
 

@@ -20,10 +20,10 @@ class WorkerTest(TestCase):
         self.worker.run()
 
         self.assertEqual(self.result_q.get(),
-                         Result(result=(3, 2), status=Status.RUN, progress=100, text_error='Ошибка'))
+                         Result(result=(3, 2), status=Status.RUN, progress=100))
 
         self.assertEqual(self.result_q.get(),
-                         Result(result=(3, 2), status=Status.DONE, progress=100, text_error='Ошибка'))
+                         Result(result=(3, 2), status=Status.DONE, progress=100))
 
         self.assertTrue(self.result_q.empty())
 
