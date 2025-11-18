@@ -31,23 +31,23 @@ class BaseBridge(QObject):
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger('log_bridge')
 
-        self.task_q = task_q
-        self.result_q = result_q
-        self.interval = interval
+        self._task_q = task_q
+        self._result_q = result_q
+        self._interval = interval
 
         # Таймер для проверки результатов
         self._timer = QTimer()
         self._timer.timeout.connect(self._check_result)
-        self._timer.start(self.interval)
+        self._timer.start(self._interval)
 
     def send_task(self, params: Task) -> None:
         """Отправить задачу в очередь (с безопасной проверкой)."""
         try:
-            if self.task_q.full():
+            if self._task_q.full():
                 self.error_signal.emit('Очередь задач переполнена')
                 self.logger.warning('Очередь \"task_q\" переполнена')
             else:
-                self.task_q.put(params)
+                self._task_q.put(params)
                 self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
         except Exception as e:
             self.logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
@@ -56,8 +56,8 @@ class BaseBridge(QObject):
     def _check_result(self) -> None:
         """Проверить очередь результатов и эмитить нужный сигнал."""
         try:
-            while not self.result_q.empty():
-                result = self.result_q.get_nowait()
+            while not self._result_q.empty():
+                result = self._result_q.get_nowait()
                 self.logger.debug('Получены данные из \"result_q\"')
                 self._handle_result(result)
         except Exception as e:

@@ -7,7 +7,7 @@ from gui.helpers.widget_overrides import attach_context_menu
 class Graph(BaseGraph):
     """
     Пример реализации Класса BaseGraph.
-    Изменено контекстное меню виджета FigureCanvas (self.canvas).
+    Изменено контекстное меню виджета FigureCanvas (self._canvas).
     """
 
     def __init__(self, target_widget: QWidget, *, title: str = 'График'):
@@ -18,7 +18,7 @@ class Graph(BaseGraph):
 
         self.show_grid()
 
-        attach_context_menu(self.canvas, {'Сохранить график': self.save_graph})
+        attach_context_menu(self._canvas, {'Сохранить график': self.save_graph})
 
     def plot_realtime(self, new_x: int, new_y: int) -> None:
         """Отрисовка графика при получении промежуточных данных"""
@@ -44,4 +44,3 @@ class Graph(BaseGraph):
 
         self.x.clear()
         self.y.clear()
-

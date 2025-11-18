@@ -13,11 +13,11 @@ class ErrorDialog(QDialog):
         self.setModal(True)  # Блокирует родительское окно
         self.resize(210, 100)
 
-        btn = QPushButton('Закрыть')
-        btn.clicked.connect(self.accept)
+        _btn = QPushButton('Закрыть')
+        _btn.clicked.connect(self.accept)
 
-        layout = QVBoxLayout()
-        layout.addWidget(QLabel(message))
-        layout.addWidget(btn)
+        _layout = QVBoxLayout()
+        _layout.addWidget(QLabel(message))
+        _layout.addWidget(_btn)
 
-        self.setLayout(layout)
+        self.setLayout(_layout)

@@ -8,23 +8,23 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 class BaseGraph(ABC):
     def __init__(self, target_widget: QWidget, title: str = 'График'):
         # Параметры.
-        self.target_widget = target_widget
-        self.title = title
+        self._target_widget = target_widget
+        self._title = title
 
         # Окно графика.
-        self.figure = Figure(figsize=(5, 3))
-        self.canvas = FigureCanvas(self.figure)
+        self._figure = Figure(figsize=(5, 3))
+        self._canvas = FigureCanvas(self._figure)
 
         # График.
-        self.ax = self.figure.add_subplot(111)
-        self.ax.set_title(self.title)
+        self.ax = self._figure.add_subplot(111)
+        self.ax.set_title(self._title)
 
         # Определение layout.
         layout = target_widget.layout()
 
         if layout is None:  # проверка на наличие layout на виджете.
             layout = QVBoxLayout()
-            self.target_widget.setLayout(layout)
+            self._target_widget.setLayout(layout)
         else:
             for i in reversed(range(layout.count())):
                 item = layout.itemAt(i)
@@ -34,7 +34,7 @@ class BaseGraph(ABC):
                     w.deleteLater()
 
         # Добавляем виджет на найденный layout
-        layout.addWidget(self.canvas)
+        layout.addWidget(self._canvas)
 
     @abstractmethod
     def plot_final(self, *args, **kwargs) -> None:
@@ -49,31 +49,31 @@ class BaseGraph(ABC):
     def clear(self) -> None:
         """Отчищает оси координат. Обновляет название графика."""
         self.ax.clear()
-        self.ax.set_title(self.title)
-        self.canvas.draw_idle()
+        self.ax.set_title(self._title)
+        self._canvas.draw_idle()
 
     def set_label(self, x_label: str, y_label: str) -> None:
         """Устанавливает имена осей."""
         self.ax.set_xlabel(x_label)
         self.ax.set_ylabel(y_label)
-        self.canvas.draw_idle()
+        self._canvas.draw_idle()
 
     def set_title(self, title: str) -> None:
         """Устанавливает новое название графика"""
-        self.title = title
-        self.ax.set_title(self.title)
-        self.canvas.draw_idle()
+        self._title = title
+        self.ax.set_title(self._title)
+        self._canvas.draw_idle()
 
     def show_grid(self, on: bool = True) -> None:
         """Включает/выключает сетку на графике."""
         self.ax.grid(on)
-        self.canvas.draw_idle()
+        self._canvas.draw_idle()
 
     def autoscale(self) -> None:
         """Автоматически редактирует график."""
         self.ax.relim()
         self.ax.autoscale()
-        self.canvas.draw_idle()
+        self._canvas.draw_idle()
 
     def save_graph(self) -> None:
         # TODO: метод для сохранения текущего графика
