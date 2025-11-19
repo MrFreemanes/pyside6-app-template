@@ -13,6 +13,7 @@ class TaskType:
     """
     Содержит в себе имена дочерних классов от BaseWorker.
     Используется для направления задачи в нужный "Worker".
+    ВАЖНО: имена должны совпадать с названиями классов-наследников BaseWorker.
     """
     WORKER = 'Worker'
     WRITER = 'Writer'
@@ -26,6 +27,7 @@ class Task:
     """
     task_name: str
     num: int
+
     task_type: str = TaskType.WORKER
 
     def __post_init__(self):
