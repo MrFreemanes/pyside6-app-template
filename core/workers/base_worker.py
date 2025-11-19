@@ -12,7 +12,7 @@ from logs.logger_cfg import cfg
 class BaseWorker(ABC):
     """
     Класс-воркер в котором реализуются методы с CPU-GPU-IO нагрузкой.
-    Использование:
+    Использование (можно несколько, но с уточнением типа в Task):
     worker = Worker(q, q)
     w = mp.Process(target=worker.run, daemon=True)
     w.start()
@@ -93,5 +93,5 @@ class BaseWorker(ABC):
             self.logger.exception('Ошибка при выполнении задачи %s', task_name)
 
     def _can_handle(self) -> bool:
-        """Проверка на тип задачи."""
+        """Проверка типа задачи."""
         return self.item.task_type == self.__class__.__name__

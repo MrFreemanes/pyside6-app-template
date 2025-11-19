@@ -22,7 +22,7 @@ class TaskType:
 class Task:
     """
     Датакласс для передачи задач в worker.
-    :task_type: TaskType.
+    :task_type: TaskType, определяет в какой процесс пойдет задача.
     """
     task_name: str
     num: int
@@ -36,7 +36,7 @@ class Task:
 @dataclass(frozen=True)
 class Result:
     """
-    Датакласс для передачи результата включая ошибки.
+    Датакласс для передачи результата вычислений включая ошибки.
     :status: Status.
     """
     result: Any
