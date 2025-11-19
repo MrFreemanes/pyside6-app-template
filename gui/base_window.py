@@ -26,24 +26,24 @@ class BaseWindow(QMainWindow):
         self.logger = logging.getLogger('log_gui')
         self.bridge = bridge
 
-        self._setup_ui()
-        self._connect_widget()
+        self.setup_ui()
+        self.connect_widget()
 
         self.bridge.error_signal.connect(self._dialog_error)
-        self._connect_bridge_signals()
+        self.connect_bridge_signals()
 
     @abstractmethod
-    def _setup_ui(self) -> None:
+    def setup_ui(self) -> None:
         """Создание и настройка UI. (реализуется в наследнике)"""
         pass
 
     @abstractmethod
-    def _connect_widget(self) -> None:
+    def connect_widget(self) -> None:
         """Подключение сигналов UI. (реализуется в наследнике)"""
         pass
 
     @abstractmethod
-    def _connect_bridge_signals(self) -> None:
+    def connect_bridge_signals(self) -> None:
         """Базовое подключение сигналов моста."""
         pass
 

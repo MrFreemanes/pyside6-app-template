@@ -6,18 +6,18 @@ from config.config import Result, Task
 
 
 class MainWindow(BaseWindow):
-    def _setup_ui(self) -> None:
+    def setup_ui(self) -> None:
         """Обозначение главных переменных."""
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle('Расчет чисел Фибоначчи')
         self.graph = Graph(self.ui.group_box_T1, title='Числа Фибоначчи')
 
-    def _connect_widget(self) -> None:
+    def connect_widget(self) -> None:
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
-    def _connect_bridge_signals(self) -> None:
+    def connect_bridge_signals(self) -> None:
         """Подключение сигналов из моста."""
         self.bridge.done_signal.connect(self._done_graph)
         self.bridge.process_signal.connect(self._show_process_graph)
