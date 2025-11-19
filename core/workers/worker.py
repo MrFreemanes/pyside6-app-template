@@ -25,7 +25,7 @@ class Worker(BaseWorker):
                 return 1
             res = calc(num - 1) + calc(num - 2)
             if num not in check_list:
-                self._result_q.put(Result(result=(num, res), status=Status.RUN, progress=int(num / number * 100), ))
+                self.result_q.put(Result(result=(num, res), status=Status.RUN, progress=int(num / number * 100), ))
                 check_list.add(num)
                 time.sleep(0.05)  # видимость нагрузки
             return res
@@ -33,4 +33,4 @@ class Worker(BaseWorker):
         result = calc(number)
 
         self.logger.debug('result: %s', result)
-        self._result_q.put(Result(result=(number, result), status=Status.DONE, progress=100, ))
+        self.result_q.put(Result(result=(number, result), status=Status.DONE, progress=100, ))
