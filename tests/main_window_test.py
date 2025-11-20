@@ -26,7 +26,7 @@ class MainWindowTest(TestCase):
 
         self_mock = Mock()
 
-        setup_ui = MainWindow._setup_ui
+        setup_ui = MainWindow.setup_ui
         setup_ui(self_mock)
 
         # init ui in _setup_ui()
@@ -52,7 +52,7 @@ class MainWindowTest(TestCase):
         self_mock = Mock()
         self_mock.bridge = bridge_mock
 
-        connect_bridge_signals = MainWindow._connect_bridge_signals
+        connect_bridge_signals = MainWindow.connect_bridge_signals
         connect_bridge_signals(self_mock)
 
         self.assertTrue(bridge_mock.done_signal.connect.called)

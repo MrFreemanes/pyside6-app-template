@@ -20,7 +20,6 @@ class BridgeTest(TestCase):
         res_1 = Result(10, Status.RUN, 10)
         res_2 = Result(100, Status.DONE, 100)
         res_3 = Result(100, Status.ERROR, 100, text_error='ERR')
-        res_4 = Result(100, 'asd', 100)
 
         # test status 'run'
         self.bridge._handle_result(res_1)
@@ -34,12 +33,11 @@ class BridgeTest(TestCase):
         # test status 'error'
         self.bridge._handle_result(res_3)
         self.assertEqual(self.bridge.error_signal.emit.call_args[0][0], res_3.text_error)
-        self.assertEqual(self.bridge.logger.debug.call_args[0][0], 'Получена ошибка')
+        self.assertEqual(self.bridge.logger.debug.call_args[0], ('Получена ошибка: %s', 'ERR'))
 
         # test non-existent status
-        self.bridge._handle_result(res_4)
-        self.assertEqual(self.bridge.error_signal.emit.call_args[0][0], f'Статус не определен: {res_4.status}')
-        self.assertEqual(self.bridge.logger.warning.call_args[0], ('Статус не определен: %s', res_4.status))
+        with self.assertRaisesRegex(ValueError, "Invalid status: asd"):
+            Result(10, 'asd', 12)
 
 
 if __name__ == '__main__':
