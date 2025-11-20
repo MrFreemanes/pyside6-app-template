@@ -29,15 +29,16 @@ class BaseWorker(ABC):
         self.logger = logging.getLogger('log_worker')
         self.logger.debug('%s инициализирован', self.__class__.__name__)
 
-        self._task_q: mp.Queue = task_q
+        self.task_q: mp.Queue = task_q
         self.result_q: mp.Queue = result_q
         self.item: Task | None = None
 
     @classmethod
     def register_task(cls, name: str):
         """
-        Добавляет функцию и название для ее вызова в task_map.
-        Применение: оборачивать метод, который будет вызываться через bridge.send_task(Task).
+        Добавляет функцию и название для ее вызова в __task_map.
+        Применение: оборачивать метод,
+        который будет вызываться через bridge.send_task(Task(name_task=NAME_FUNC)).
         :param name: Task.task
         :return: func
         """
@@ -56,11 +57,11 @@ class BaseWorker(ABC):
         """
         while True:
             try:
-                self.item: Task = self._task_q.get(timeout=1)  # таймаут в секундах
+                self.item: Task = self.task_q.get(timeout=1)  # таймаут в секундах
 
                 if self.item is None: break
                 if not self._can_handle():
-                    self._task_q.put(self.item)
+                    self.task_q.put(self.item)
                     continue
 
                 self.logger.debug('Получена задача: %s', self.item)
@@ -70,14 +71,14 @@ class BaseWorker(ABC):
             self._distributor(self.item.task_name)
 
     def stop(self) -> None:
-        """Останавливает очередь."""
-        self._task_q.put(None)
+        """Останавливает Worker."""
+        self.task_q.put(None)
         self.logger.debug('%s остановлен', self.__class__.__name__)
 
     def _distributor(self, task_name: str) -> None:
         """
         Автоматически вызывает метод по имени в классе наследнике, если он был добавлен через register_task.
-        :param task_name: Имя задачи.
+        :param task_name: Имя задачи(название функции).
         """
         handler = self.__task_map.get(task_name)
         if not handler:
