@@ -1,6 +1,7 @@
 import queue
 import multiprocessing as mp
 import logging
+import time
 from logging import config
 from abc import ABC
 from typing import Callable
@@ -11,14 +12,21 @@ from logs.logger_cfg import cfg
 
 class BaseWorker(ABC):
     """
-    Класс-воркер в котором реализуются методы с CPU-GPU-IO нагрузкой.
-    Использование (можно несколько, но с уточнением типа в Task):
+    Класс-воркер. В наследнике реализуются методы с CPU-GPU-IO нагрузкой.
+    Использование (можно несколько процессов, но с уточнением типа в Task):
     worker = Worker(q, q)
     w = mp.Process(target=worker.run, daemon=True)
     w.start()
     """
 
-    __task_map: dict[str, Callable] = {}
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._task_map: dict[str, Callable] = {}  # {"название задачи": выполняемая функция}
+
+        # Собрать все методы, помеченные декоратором
+        for attr_name, attr in cls.__dict__.items():
+            if hasattr(attr, "__task_name__"):
+                cls._task_map[attr.__task_name__] = attr
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue):
         """
@@ -36,22 +44,22 @@ class BaseWorker(ABC):
     @classmethod
     def register_task(cls, name: str):
         """
-        Добавляет функцию и название для ее вызова в __task_map.
-        Применение: оборачивать метод,
-        который будет вызываться через bridge.send_task(Task(name_task=NAME_FUNC)).
-        :param name: Task.task
-        :return: func
+        Добавляет методу атрибут __task_name__ для создания __task_map для конкретной реализации класса.
+        Применение: оборачивать метод, который будет вызываться
+        через bridge.send_task(Task(task_name=NAME_METHOD, ...)).
+        :param name: Task.task_name - имя по которому будет выполняться задача.
+        :return: Возвращает тот же метод, добавив ему атрибут __task_name__
         """
 
-        def wrapper(func):
-            cls.__task_map[name] = func
-            return func
+        def wrapper(method: Callable):
+            method.__task_name__ = name
+            return method
 
         return wrapper
 
     def run(self) -> None:
         """
-        CPU-GPU-IO нагрузка. Используется как отдельный процесс.
+        Основной цикл worker-процесса. Работает пока не получит None.
         w = mp.Process(target=worker.run, daemon=True)
         w.start()
         """
@@ -62,6 +70,7 @@ class BaseWorker(ABC):
                 if self.item is None: break
                 if not self._can_handle():
                     self.task_q.put(self.item)
+                    time.sleep(0.01)
                     continue
 
                 self.logger.debug('Получена задача: %s', self.item)
@@ -77,10 +86,11 @@ class BaseWorker(ABC):
 
     def _distributor(self, task_name: str) -> None:
         """
-        Автоматически вызывает метод по имени в классе наследнике, если он был добавлен через register_task.
-        :param task_name: Имя задачи(название функции).
+        Автоматически вызывает метод по имени в классе наследнике,
+        если он был добавлен через register_task('имя задачи').
+        :param task_name: Имя задачи(название метода).
         """
-        handler = self.__task_map.get(task_name)
+        handler = self._task_map.get(task_name)
         if not handler:
             self.result_q.put(Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {task_name}'))
             self.logger.error('Неизвестная задача: %s', task_name)
