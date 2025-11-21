@@ -4,7 +4,7 @@ import logging
 import time
 from logging import config
 from abc import ABC
-from typing import Callable
+from typing import Callable, Any
 
 from config.config import Status, Task, Result
 from logs.logger_cfg import cfg
@@ -106,3 +106,13 @@ class BaseWorker(ABC):
     def _can_handle(self) -> bool:
         """Проверка типа задачи."""
         return self.item.task_type == self.__class__.__name__
+
+    def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
+        self.result_q.put(
+            Result(result=result,
+                   result_name=self.item.task_name,
+                   result_type=self.__class__.__name__,
+                   status=status,
+                   progress=progress,
+                   text_error=text_error)
+        )

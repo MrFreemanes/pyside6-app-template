@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication
 from gui.dialogs.error_dialog import ErrorDialog
 from core.bridges.base_bridge import BaseBridge
 from logs.logger_cfg import cfg
+from config.config import Result
 
 
 class BaseWindow(QMainWindow):
@@ -26,11 +27,14 @@ class BaseWindow(QMainWindow):
         self.logger = logging.getLogger('log_gui')
         self.bridge = bridge
 
+        self.callbacks = {}
+        self.set_callbacks()
+
         self.setup_ui()
         self.connect_widget()
 
         self.bridge.error_signal.connect(self._dialog_error)
-        self.connect_bridge_signals()
+        self.bridge.result_signal.connect(self._result_came)
 
     @abstractmethod
     def setup_ui(self) -> None:
@@ -43,9 +47,13 @@ class BaseWindow(QMainWindow):
         pass
 
     @abstractmethod
-    def connect_bridge_signals(self) -> None:
-        """Базовое подключение сигналов моста."""
+    def set_callbacks(self):
         pass
+
+    def _result_came(self, result: Result):
+        callback = self.callbacks.get(result.result_type).get(result.result_name).get(result.status)
+        if callback is not None:
+            callback(result)
 
     def _dialog_error(self, message: str) -> None:
         """

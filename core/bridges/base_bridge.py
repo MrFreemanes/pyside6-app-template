@@ -1,7 +1,6 @@
 import multiprocessing as mp
 import logging
 from logging import config
-from abc import abstractmethod
 from queue import Full, Empty
 
 from PySide6.QtCore import QObject, Signal, QTimer
@@ -18,9 +17,8 @@ class BaseBridge(QObject):
     Отправляет результат через Signal.emit(result).
     """
 
-    error_signal = Signal(Result)
-    process_signal = Signal(Result)  # Прогресс/статус задачи
-    done_signal = Signal(Result)  # Готовый результат
+    error_signal = Signal(str)
+    result_signal = Signal(Result)
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue, *, interval: int = 200):
         """
@@ -76,7 +74,17 @@ class BaseBridge(QObject):
             self.logger.exception('Ошибка при получении результата из \"result_q\": %s', e)
             self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
-    @abstractmethod
     def _handle_result(self, result: Result) -> None:
-        """Обработка полученного результата (реализуется в наследнике)."""
-        pass
+        """Передача сигнала при получении результата."""
+        match result.status:
+            case Status.RUN:
+                self.result_signal.emit(result)
+            case Status.DONE:
+                self.result_signal.emit(result)
+                self.logger.debug('Получены последние данные')
+            case Status.ERROR:
+                self.error_signal.emit(result.text_error)
+                self.logger.debug('Получена ошибка: %s', result.text_error)
+            case _:
+                self.error_signal.emit(f'Статус не определен: {stat}')
+                self.logger.warning('Статус не определен: %s', stat)

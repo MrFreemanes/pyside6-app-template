@@ -43,6 +43,8 @@ class Result:
     :status: Status.
     """
     result: Any
+    result_name: str
+    result_type: str
     status: str
     progress: int
     text_error: str | None = None

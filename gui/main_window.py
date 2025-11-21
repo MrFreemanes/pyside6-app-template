@@ -2,7 +2,7 @@ from gui.base_window import BaseWindow
 from gui.ui.ui_untitled import Ui_MainWindow
 from gui.widgets.graphs.graph import Graph
 
-from config.config import Result, Task
+from config.config import Result, Task, TaskType, Status
 
 
 class MainWindow(BaseWindow):
@@ -17,10 +17,15 @@ class MainWindow(BaseWindow):
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
-    def connect_bridge_signals(self) -> None:
-        """Подключение сигналов из моста."""
-        self.bridge.done_signal.connect(self._done_graph)
-        self.bridge.process_signal.connect(self._show_process_graph)
+    def set_callbacks(self):
+        self.callbacks = {
+            TaskType.WORKER: {
+                'calc': {
+                    Status.DONE: self._done_graph,
+                    Status.RUN: self._show_process_graph
+                }
+            }
+        }
 
     # --- реализация приложения ---
     def _run(self) -> None:
