@@ -52,15 +52,11 @@ class BaseBridge(QObject):
             self._task_q.put(params, block=False)
             self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
         except Full:
-            self.error_signal.emit(
-                Result((), Status.ERROR, 0, text_error='Очередь задач переполнена')
-            )
+            self.error_signal.emit('Очередь задач переполнена')
             self.logger.warning('Очередь \"task_q\" переполнена')
         except Exception as e:
             self.logger.exception('Ошибка при отправке задачи в \"task_q\": %s', e)
-            self.error_signal.emit(
-                Result((), Status.ERROR, 0, text_error=f'Ошибка при отправке задачи: {e}')
-            )
+            self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
 
     def _check_result(self) -> None:
         """Проверить очередь результатов и эмитить нужный сигнал."""
@@ -78,7 +74,7 @@ class BaseBridge(QObject):
             pass
         except Exception as e:
             self.logger.exception('Ошибка при получении результата из \"result_q\": %s', e)
-            self.error_signal.emit(Result((), Status.ERROR, 0, f'Ошибка при получении результата: {e}'))
+            self.error_signal.emit(f'Ошибка при получении результата: {e}')
 
     @abstractmethod
     def _handle_result(self, result: Result) -> None:
