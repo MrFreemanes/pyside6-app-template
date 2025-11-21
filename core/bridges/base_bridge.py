@@ -2,23 +2,25 @@ import multiprocessing as mp
 import logging
 from logging import config
 from abc import abstractmethod
-from typing import Any
+from queue import Full, Empty
 
 from PySide6.QtCore import QObject, Signal, QTimer
 
 from logs.logger_cfg import cfg
-from config.config import Task, Result
+from config.config import Task, Result, Status
 
 
 class BaseBridge(QObject):
     """
     Класс-мост между UI и воркерами.
-    Работает через multiprocessing.Queue и Qt-сигналы.
+    Работает в UI-потоке через multiprocessing.Queue и Qt-сигналы.
+    Проверяет очередь результатов с интервалом "self.interval".
+    Отправляет результат через Signal.emit(result).
     """
 
-    error_signal = Signal(Any)  # Ошибка воркера
-    process_signal = Signal(Any)  # Прогресс/статус задачи
-    done_signal = Signal(Any)  # Завершённый результат
+    error_signal = Signal(Result)
+    process_signal = Signal(Result)  # Прогресс/статус задачи
+    done_signal = Signal(Result)  # Готовый результат
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue, *, interval: int = 200):
         """
@@ -41,28 +43,42 @@ class BaseBridge(QObject):
         self._timer.start(self._interval)
 
     def send_task(self, params: Task) -> None:
-        """Отправить задачу в очередь (с безопасной проверкой)."""
+        """Отправить задачу в очередь (с проверкой)."""
         try:
-            if self._task_q.full():
-                self.error_signal.emit('Очередь задач переполнена')
-                self.logger.warning('Очередь \"task_q\" переполнена')
-            else:
-                self._task_q.put(params)
-                self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
+            if not isinstance(params, Task):
+                self.logger.error('Неверный тип задачи: %s', type(params))
+                raise TypeError(f'Неверный тип задачи: {type(params)}, а должен быть: Task')
+
+            self._task_q.put(params, block=False)
+            self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
+        except Full:
+            self.error_signal.emit(
+                Result((), Status.ERROR, 0, text_error='Очередь задач переполнена')
+            )
+            self.logger.warning('Очередь \"task_q\" переполнена')
         except Exception as e:
-            self.logger.error('Ошибка при отправке задачи в \"task_q\": %s', e)
-            self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
+            self.logger.exception('Ошибка при отправке задачи в \"task_q\": %s', e)
+            self.error_signal.emit(
+                Result((), Status.ERROR, 0, text_error=f'Ошибка при отправке задачи: {e}')
+            )
 
     def _check_result(self) -> None:
         """Проверить очередь результатов и эмитить нужный сигнал."""
         try:
-            while not self._result_q.empty():
+            while True:
                 result = self._result_q.get_nowait()
                 self.logger.debug('Получены данные из \"result_q\"')
+
+                if not isinstance(result, Result):
+                    self.logger.error('Неверный тип результата: %s', type(result))
+                    raise TypeError(f'Неверный тип результата: {type(result)}, а должен быть: Result')
+
                 self._handle_result(result)
+        except Empty:
+            pass
         except Exception as e:
-            self.logger.error('Ошибка при получении результата из \"result_q\": %s', e)
-            self.error_signal.emit(f'Ошибка при получении результата: {e}')
+            self.logger.exception('Ошибка при получении результата из \"result_q\": %s', e)
+            self.error_signal.emit(Result((), Status.ERROR, 0, f'Ошибка при получении результата: {e}'))
 
     @abstractmethod
     def _handle_result(self, result: Result) -> None:

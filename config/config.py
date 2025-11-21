@@ -39,13 +39,17 @@ class Task:
 class Result:
     """
     Датакласс для передачи результата вычислений включая ошибки.
+    Если status == Status.ERROR, то text_error не должен быть пустым.
     :status: Status.
     """
     result: Any
     status: str
     progress: int
-    text_error: str = 'Ошибка'
+    text_error: str | None = None
 
     def __post_init__(self):
         if self.status not in Status.__dict__.values():
             raise ValueError(f"Invalid status: {self.status}")
+
+        if self.status == Status.ERROR and not self.text_error:
+            raise ValueError("text_error must be provided when status=ERROR")
