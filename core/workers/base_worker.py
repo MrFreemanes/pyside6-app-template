@@ -80,9 +80,26 @@ class BaseWorker(ABC):
             self._distributor(self.item.task_name)
 
     def stop(self) -> None:
-        """Останавливает Worker."""
+        """Кидает None в очередь."""
         self.task_q.put(None)
         self.logger.debug('%s остановлен', self.__class__.__name__)
+
+    def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
+        """
+        Отправляет дополненный результат в очередь.
+        :param result: Результат вычислений окончательный/промежуточный.
+        :param status: Status.
+        :param progress: (1-100).
+        :param text_error: Указывается только при status==error.
+        """
+        self.result_q.put(
+            Result(result=result,
+                   status=status,
+                   progress=progress,
+                   gui_progress_method=self.item.gui_progress_method,
+                   gui_done_method=self.item.gui_done_method,
+                   text_error=text_error)
+        )
 
     def _distributor(self, task_name: str) -> None:
         """
@@ -106,13 +123,3 @@ class BaseWorker(ABC):
     def _can_handle(self) -> bool:
         """Проверка типа задачи."""
         return self.item.task_type == self.__class__.__name__
-
-    def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
-        self.result_q.put(
-            Result(result=result,
-                   result_name=self.item.task_name,
-                   result_type=self.__class__.__name__,
-                   status=status,
-                   progress=progress,
-                   text_error=text_error)
-        )

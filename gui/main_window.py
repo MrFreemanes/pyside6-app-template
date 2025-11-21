@@ -2,7 +2,7 @@ from gui.base_window import BaseWindow
 from gui.ui.ui_untitled import Ui_MainWindow
 from gui.widgets.graphs.graph import Graph
 
-from config.config import Result, Task, TaskType, Status
+from config.config import Result, Task
 
 
 class MainWindow(BaseWindow):
@@ -17,24 +17,18 @@ class MainWindow(BaseWindow):
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
-    def set_callbacks(self):
-        self.callbacks = {
-            TaskType.WORKER: {
-                'calc': {
-                    Status.DONE: self._done_graph,
-                    Status.RUN: self._show_process_graph
-                }
-            }
-        }
-
     # --- реализация приложения ---
     def _run(self) -> None:
         """ПРИМЕР.
         Отключает виджеты при начале расчетов.
-        Уведомляет мост о полученной задаче.
+        Уведомляет мост о задаче.
         """
         self.ui.btn_calc_T1.setEnabled(False)
-        self.bridge.send_task(Task('calc', 100))
+        self.bridge.send_task(
+            Task('calc', 100,
+                 gui_progress_method='_show_process_graph',
+                 gui_done_method='_done_graph')
+        )
 
         self.logger.debug('Задача отправлена')
 

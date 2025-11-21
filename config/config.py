@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 
 class Status:
@@ -24,11 +24,16 @@ class Task:
     """
     Датакласс для передачи задач в worker.
     :task_type: TaskType, определяет в какой процесс пойдет задача.
+    :gui_progress_method: Название метода для вызова в момент выполнения задачи.
+    :gui_done_method: Название метода для конечного вызова.
     """
     task_name: str
     num: int
 
     task_type: str = TaskType.WORKER
+    # название методов для вызова в GUI
+    gui_progress_method: str | None = None
+    gui_done_method: str | None = None
 
     def __post_init__(self):
         if self.task_type not in TaskType.__dict__.values():
@@ -41,13 +46,17 @@ class Result:
     Датакласс для передачи результата вычислений включая ошибки.
     Если status == Status.ERROR, то text_error не должен быть пустым.
     :status: Status.
+    :gui_progress_method: Название метода для вызова в момент выполнения задачи.
+    :gui_done_method: Название метода для конечного вызова.
     """
     result: Any
-    result_name: str
-    result_type: str
     status: str
     progress: int
+
     text_error: str | None = None
+    # название методов для вызова в GUI
+    gui_progress_method: str | None = None
+    gui_done_method: str | None = None
 
     def __post_init__(self):
         if self.status not in Status.__dict__.values():

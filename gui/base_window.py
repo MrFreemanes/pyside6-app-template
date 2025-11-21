@@ -2,12 +2,13 @@ import logging
 from abc import abstractmethod
 from logging import config
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QMainWindow, QApplication
 
 from gui.dialogs.error_dialog import ErrorDialog
-from core.bridges.base_bridge import BaseBridge
+from core.bridges.bridge import Bridge
 from logs.logger_cfg import cfg
-from config.config import Result
+from config.config import Result, Status
 
 
 class BaseWindow(QMainWindow):
@@ -20,15 +21,12 @@ class BaseWindow(QMainWindow):
       - шаблон для настройки интерфейса и сигналов
     """
 
-    def __init__(self, bridge: BaseBridge):
+    def __init__(self, bridge: Bridge):
         super().__init__()
 
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger('log_gui')
         self.bridge = bridge
-
-        self.callbacks = {}
-        self.set_callbacks()
 
         self.setup_ui()
         self.connect_widget()
@@ -46,14 +44,15 @@ class BaseWindow(QMainWindow):
         """Подключение сигналов UI. (реализуется в наследнике)"""
         pass
 
-    @abstractmethod
-    def set_callbacks(self):
-        pass
-
+    @Slot(Result)
     def _result_came(self, result: Result):
-        callback = self.callbacks.get(result.result_type).get(result.result_name).get(result.status)
-        if callback is not None:
-            callback(result)
+        method_name = {
+            Status.DONE: result.gui_done_method,
+            Status.RUN: result.gui_progress_method,
+        }.get(result.status)
+
+        if method_name:
+            getattr(self, method_name)(result)
 
     def _dialog_error(self, message: str) -> None:
         """
