@@ -96,8 +96,8 @@ class BaseWorker(ABC):
             Result(result=result,
                    status=status,
                    progress=progress,
-                   gui_progress_method=self.item.gui_progress_method,
-                   gui_done_method=self.item.gui_done_method,
+                   progress_handler=self.item.progress_handler,
+                   done_handler=self.item.done_handler,
                    text_error=text_error)
         )
 

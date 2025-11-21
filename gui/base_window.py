@@ -47,8 +47,8 @@ class BaseWindow(QMainWindow):
     @Slot(Result)
     def _result_came(self, result: Result):
         method_name = {
-            Status.DONE: result.gui_done_method,
-            Status.RUN: result.gui_progress_method,
+            Status.DONE: result.done_handler,
+            Status.RUN: result.progress_handler,
         }.get(result.status)
 
         if method_name:

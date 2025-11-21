@@ -26,8 +26,8 @@ class MainWindow(BaseWindow):
         self.ui.btn_calc_T1.setEnabled(False)
         self.bridge.send_task(
             Task('calc', 100,
-                 gui_progress_method='_show_process_graph',
-                 gui_done_method='_done_graph')
+                 progress_handler='_show_process_graph',
+                 done_handler='_done_graph')
         )
 
         self.logger.debug('Задача отправлена')

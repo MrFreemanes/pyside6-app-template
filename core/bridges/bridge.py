@@ -86,5 +86,5 @@ class Bridge(QObject):
                 self.error_signal.emit(result.text_error)
                 self.logger.debug('Получена ошибка: %s', result.text_error)
             case _:
-                self.error_signal.emit(f'Статус не определен: {stat}')
-                self.logger.warning('Статус не определен: %s', stat)
+                self.error_signal.emit(f'Статус не определен: {result.status}')
+                self.logger.warning('Статус не определен: %s', result.status)
