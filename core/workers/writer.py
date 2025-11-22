@@ -3,7 +3,7 @@ from core.workers.base_worker import BaseWorker
 
 class Writer(BaseWorker):
     """
-    Пример использования 2-го процесса помимо Worker.
+    Пример использования 2-го воркера.
     writer = Writer(task_q, result_q)
     worker = Worker(task_q, result_q)
     p1 = mp.Process(target=writer.run, daemon=True)

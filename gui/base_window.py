@@ -46,6 +46,11 @@ class BaseWindow(QMainWindow):
 
     @Slot(Result)
     def _result_came(self, result: Result):
+        """
+        Автоматически вызывает метод реализованный в классе наследнике
+        при получении результата в Bridge.
+        :param result: Результат промежуточных/окончательных вычислений.
+        """
         method_name = {
             Status.DONE: result.done_handler,
             Status.RUN: result.progress_handler,

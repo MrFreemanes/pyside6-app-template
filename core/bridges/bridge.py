@@ -41,7 +41,7 @@ class Bridge(QObject):
         self._timer.start(self._interval)
 
     def send_task(self, params: Task) -> None:
-        """Отправить задачу в очередь (с проверкой)."""
+        """Отправить проверенную задачу в очередь."""
         try:
             if not isinstance(params, Task):
                 self.logger.error('Неверный тип задачи: %s', type(params))

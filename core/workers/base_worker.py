@@ -86,7 +86,7 @@ class BaseWorker(ABC):
 
     def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
         """
-        Отправляет дополненный результат в очередь.
+        Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
         :param status: Status.
         :param progress: (1-100).
@@ -96,9 +96,9 @@ class BaseWorker(ABC):
             Result(result=result,
                    status=status,
                    progress=progress,
+                   text_error=text_error,
                    progress_handler=self.item.progress_handler,
-                   done_handler=self.item.done_handler,
-                   text_error=text_error)
+                   done_handler=self.item.done_handler)
         )
 
     def _distributor(self, task_name: str) -> None:
