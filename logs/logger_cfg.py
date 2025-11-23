@@ -45,10 +45,19 @@ cfg = {
             'backupCount': 3,
             'encoding': 'utf-8'
         },
-        'file_worker': {
+        'file_worker_Worker': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
-            'filename': path_to_log("worker.log"),
+            'filename': path_to_log("Worker.log"),
+            'formatter': 'file_msg',
+            'maxBytes': 1 * 1024 * 1024,
+            'backupCount': 3,
+            'encoding': 'utf-8'
+        },
+        'file_worker_Writer': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'filename': path_to_log("Writer.log"),
             'formatter': 'file_msg',
             'maxBytes': 1 * 1024 * 1024,
             'backupCount': 3,
@@ -71,9 +80,14 @@ cfg = {
             'handlers': ['console', 'file_bridge'],
             'propagate': False
         },
-        'log_worker': {
+        'log_worker_Worker': {
             'level': 'DEBUG',
-            'handlers': ['console', 'file_worker'],
+            'handlers': ['console', 'file_worker_Worker'],
+            'propagate': False
+        },
+        'log_worker_Writer': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file_worker_Writer'],
             'propagate': False
         }
     }

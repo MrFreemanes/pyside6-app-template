@@ -34,7 +34,7 @@ class BaseWorker(ABC):
         :param result_q: Очередь с результатами
         """
         logging.config.dictConfig(cfg)
-        self.logger = logging.getLogger('log_worker')
+        self.logger = logging.getLogger(f'log_worker_{self.__class__.__name__}')
         self.logger.debug('%s инициализирован', self.__class__.__name__)
 
         self.task_q: mp.Queue = task_q
@@ -66,23 +66,24 @@ class BaseWorker(ABC):
         while True:
             try:
                 self.item: Task = self.task_q.get(timeout=1)  # таймаут в секундах
-
-                if self.item is None: break
-                if not self._can_handle():
-                    self.task_q.put(self.item)
-                    time.sleep(0.01)
-                    continue
-
-                self.logger.debug('Получена задача: %s', self.item)
             except queue.Empty:
                 continue
+
+            if self.item is None:
+                break
+            if not self._can_handle():
+                self.task_q.put(self.item)
+                time.sleep(0.01)
+                continue
+
+            self.logger.debug('Получена задача: %s', self.item)
 
             self._distributor(self.item.task_name)
 
     def stop(self) -> None:
         """Кидает None в очередь."""
         self.task_q.put(None)
-        self.logger.debug('%s остановлен', self.__class__.__name__)
+        self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
 
     def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
         """
