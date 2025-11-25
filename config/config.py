@@ -3,7 +3,7 @@ from typing import Any
 
 
 class Status:
-    """Используется в Bridge и в worker"""
+    """Используется в Bridge и в worker для установки статуса выполнения."""
     RUN = 'run'
     DONE = 'done'
     ERROR = 'error'
@@ -11,7 +11,7 @@ class Status:
 
 class TaskType:
     """
-    Содержит в себе имена дочерних классов от BaseWorker.
+    Содержит в себе имена дочерних классов от BaseWorker в workers/.
     Используется для направления задачи в нужный "Worker".
     ВАЖНО: имена должны совпадать с названиями классов-наследников BaseWorker.
     """
@@ -50,7 +50,7 @@ class Result:
     :done_handler: Название метода для конечного вызова.
     """
     result: Any
-    status: str
+    status: str  # Status
     progress: int
 
     text_error: str | None = None

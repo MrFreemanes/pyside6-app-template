@@ -41,7 +41,7 @@ class Bridge(QObject):
         self._timer.start(self._interval)
 
     def send_task(self, params: Task) -> None:
-        """Отправить проверенную задачу в очередь."""
+        """Проверяет тип и отправляет задачу в очередь."""
         try:
             if not isinstance(params, Task):
                 self.logger.error('Неверный тип задачи: %s', type(params))
@@ -57,7 +57,7 @@ class Bridge(QObject):
             self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
 
     def _check_result(self) -> None:
-        """Проверить очередь результатов и эмитить нужный сигнал."""
+        """Проверить очередь на наличие результата и эмитить нужный сигнал."""
         try:
             while True:
                 result = self._result_q.get_nowait()
