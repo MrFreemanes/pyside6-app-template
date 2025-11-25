@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QFileDialog
 
 
 class BaseGraph(ABC):
@@ -76,5 +76,11 @@ class BaseGraph(ABC):
         self._canvas.draw_idle()
 
     def save_graph(self) -> None:
-        # TODO: метод для сохранения текущего графика
-        pass
+        file_path, _ = QFileDialog.getSaveFileName(
+            self._target_widget,
+            "Сохранить график",
+            "graph.png",
+            "PNG Files (*.png);;All Files (*)"
+        )
+        if file_path:
+            self._figure.savefig(file_path)

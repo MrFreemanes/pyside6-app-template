@@ -17,19 +17,18 @@ class MainWindow(BaseWindow):
         """Подключение виджетов к функциям."""
         self.ui.btn_calc_T1.clicked.connect(self._run)
 
-    def connect_bridge_signals(self) -> None:
-        """Подключение сигналов из моста."""
-        self.bridge.done_signal.connect(self._done_graph)
-        self.bridge.process_signal.connect(self._show_process_graph)
-
     # --- реализация приложения ---
     def _run(self) -> None:
         """ПРИМЕР.
         Отключает виджеты при начале расчетов.
-        Уведомляет мост о полученной задаче.
+        Уведомляет мост о задаче.
         """
         self.ui.btn_calc_T1.setEnabled(False)
-        self.bridge.send_task(Task('calc', 100))
+        self.bridge.send_task(
+            Task('calc', 100,
+                 progress_handler='_show_process_graph',
+                 done_handler='_done_graph')
+        )
 
         self.logger.debug('Задача отправлена')
 

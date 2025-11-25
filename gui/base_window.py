@@ -2,11 +2,13 @@ import logging
 from abc import abstractmethod
 from logging import config
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QMainWindow, QApplication
 
 from gui.dialogs.error_dialog import ErrorDialog
-from core.bridges.base_bridge import BaseBridge
+from core.bridges.bridge import Bridge
 from logs.logger_cfg import cfg
+from config.config import Result, Status
 
 
 class BaseWindow(QMainWindow):
@@ -19,7 +21,7 @@ class BaseWindow(QMainWindow):
       - шаблон для настройки интерфейса и сигналов
     """
 
-    def __init__(self, bridge: BaseBridge):
+    def __init__(self, bridge: Bridge):
         super().__init__()
 
         logging.config.dictConfig(cfg)
@@ -30,7 +32,7 @@ class BaseWindow(QMainWindow):
         self.connect_widget()
 
         self.bridge.error_signal.connect(self._dialog_error)
-        self.connect_bridge_signals()
+        self.bridge.result_signal.connect(self._result_came)
 
     @abstractmethod
     def setup_ui(self) -> None:
@@ -42,10 +44,20 @@ class BaseWindow(QMainWindow):
         """Подключение сигналов UI. (реализуется в наследнике)"""
         pass
 
-    @abstractmethod
-    def connect_bridge_signals(self) -> None:
-        """Базовое подключение сигналов моста."""
-        pass
+    @Slot(Result)
+    def _result_came(self, result: Result):
+        """
+        Автоматически вызывает метод реализованный в классе наследнике
+        при получении результата в Bridge.
+        :param result: Результат промежуточных/окончательных вычислений.
+        """
+        method_name = {
+            Status.DONE: result.done_handler,
+            Status.RUN: result.progress_handler,
+        }.get(result.status)
+
+        if method_name:
+            getattr(self, method_name)(result)
 
     def _dialog_error(self, message: str) -> None:
         """

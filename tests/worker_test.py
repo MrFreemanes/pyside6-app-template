@@ -1,4 +1,4 @@
-from multiprocessing import Queue
+from queue import Queue
 from unittest import TestCase, main
 from unittest.mock import MagicMock
 
