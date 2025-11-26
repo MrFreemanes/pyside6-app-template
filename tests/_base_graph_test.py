@@ -64,7 +64,7 @@ class BaseGraphTest(TestCase):
 
         self_mock.ax.clear.assert_called_once()
         self_mock.ax.set_title.assert_called_once()
-        self_mock._canvas.draw_idle.assert_called_once()
+        self_mock.canvas.draw_idle.assert_called_once()
 
     def test_set_label(self):
         set_label = TestGraph.set_label
@@ -74,7 +74,7 @@ class BaseGraphTest(TestCase):
 
         self_mock.ax.set_xlabel.assert_called_once_with(x_label)
         self_mock.ax.set_ylabel.assert_called_once_with(y_label)
-        self_mock._canvas.draw_idle.assert_called_once()
+        self_mock.canvas.draw_idle.assert_called_once()
 
     def test_set_title(self):
         set_title = TestGraph.set_title
@@ -84,7 +84,7 @@ class BaseGraphTest(TestCase):
 
         self.assertEqual(self_mock._title, title)
         self_mock.ax.set_title.assert_called_once_with(title)
-        self_mock._canvas.draw_idle.assert_called_once()
+        self_mock.canvas.draw_idle.assert_called_once()
 
     def test_show_grid(self):
         show_grid = TestGraph.show_grid
@@ -92,7 +92,7 @@ class BaseGraphTest(TestCase):
         show_grid(self_mock)
 
         self_mock.ax.grid.assert_called_once_with(True)
-        self_mock._canvas.draw_idle.assert_called_once()
+        self_mock.canvas.draw_idle.assert_called_once()
 
     def test_autoscale(self):
         autoscale = TestGraph.autoscale
@@ -101,7 +101,7 @@ class BaseGraphTest(TestCase):
 
         self_mock.ax.relim.assert_called_once()
         self_mock.ax.autoscale.assert_called_once()
-        self_mock._canvas.draw_idle.assert_called_once()
+        self_mock.canvas.draw_idle.assert_called_once()
 
     @patch('gui.widgets.graphs.base_graph.QFileDialog')
     def test_save_graph(self, QFileDialog_mock):

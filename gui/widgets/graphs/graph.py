@@ -16,30 +16,30 @@ class Graph(BaseGraph):
         self.x = []
         self.y = []
 
+        (self.line,) = self.ax.plot([], [], color='blue')
+
         self.show_grid()
 
-        attach_context_menu(self._canvas, {'Сохранить график': self.save_graph})
+        attach_context_menu(self.canvas, {'Сохранить график': self.save_graph})
 
     def plot_realtime(self, new_x: int, new_y: int) -> None:
         """Отрисовка графика при получении промежуточных данных"""
-        self.clear()
-
         self.x.append(new_x)
         self.y.append(new_y)
 
-        self.show_grid()
-        self.ax.plot(self.x, self.y, color='blue')
-        self.autoscale()
+        if len(self.x) % 2 == 0:
+            self.ax.relim()
+            self.ax.autoscale()
+
+        self.line.set_data(self.x, self.y)
+        self.canvas.draw_idle()
 
     def plot_final(self, x: int, y: int) -> None:
         """Отрисовка финального графика"""
-        self.clear()
-
         self.x.append(x)
         self.y.append(y)
 
-        self.show_grid()
-        self.ax.plot(self.x, self.y, color='green')
+        self.line.set_data(self.x, self.y)
         self.autoscale()
 
         self.x.clear()

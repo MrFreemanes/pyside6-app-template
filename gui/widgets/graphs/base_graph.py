@@ -13,7 +13,7 @@ class BaseGraph(ABC):
 
         # Окно графика.
         self._figure = Figure(figsize=(5, 3))
-        self._canvas = FigureCanvas(self._figure)
+        self.canvas = FigureCanvas(self._figure)
 
         # График.
         self.ax = self._figure.add_subplot(111)
@@ -34,7 +34,7 @@ class BaseGraph(ABC):
                     w.deleteLater()
 
         # Добавляем виджет на найденный layout
-        layout.addWidget(self._canvas)
+        layout.addWidget(self.canvas)
 
     @abstractmethod
     def plot_final(self, *args, **kwargs) -> None:
@@ -50,30 +50,30 @@ class BaseGraph(ABC):
         """Отчищает оси координат. Обновляет название графика."""
         self.ax.clear()
         self.ax.set_title(self._title)
-        self._canvas.draw_idle()
+        self.canvas.draw_idle()
 
     def set_label(self, x_label: str, y_label: str) -> None:
         """Устанавливает имена осей."""
         self.ax.set_xlabel(x_label)
         self.ax.set_ylabel(y_label)
-        self._canvas.draw_idle()
+        self.canvas.draw_idle()
 
     def set_title(self, title: str) -> None:
         """Устанавливает новое название графика"""
         self._title = title
         self.ax.set_title(self._title)
-        self._canvas.draw_idle()
+        self.canvas.draw_idle()
 
     def show_grid(self, on: bool = True) -> None:
         """Включает/выключает сетку на графике."""
         self.ax.grid(on)
-        self._canvas.draw_idle()
+        self.canvas.draw_idle()
 
     def autoscale(self) -> None:
         """Автоматически редактирует график."""
         self.ax.relim()
         self.ax.autoscale()
-        self._canvas.draw_idle()
+        self.canvas.draw_idle()
 
     def save_graph(self) -> None:
         file_path, _ = QFileDialog.getSaveFileName(
