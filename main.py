@@ -10,6 +10,7 @@ from core.workers.worker import Worker
 from core.bridges.bridge import Bridge
 from logs.logger_cfg import cfg
 
+logging.disable(logging.NOTSET)  # Для отключения - CRITICAL.
 logging.config.dictConfig(cfg)
 logger = logging.getLogger('log_main')
 
