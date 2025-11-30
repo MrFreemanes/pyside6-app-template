@@ -32,7 +32,7 @@
 6. Настрой callback для отправки задачи и выполнения действий после/во время ее выполнения:
     - Создай метод в `MainWindow` для отображения конечных расчетов (и если надо промежуточных).
     - Просто отправляй задачу через
-      `self.bridge.send_task(Task(..., progress_handler='name_method', done_handler='name_done_method'))` в методе
+      `self.bridge.send_task(name_task='calc', params=Any, progress_handler=self.name_method, done_handler=self.name_done_method)` в методе
       подключенном например к кнопке.
 
 ---
@@ -47,7 +47,7 @@
 ```python
 # Код работает при использовании стандартного класса Worker.
 from gui.base_window import BaseWindow
-from config.config import Task, Result
+from config.config import Result
 
 
 class MainWindow(BaseWindow):
@@ -55,11 +55,11 @@ class MainWindow(BaseWindow):
 
     def _click_btn_1(self):
         self.bridge.send_task(
-            Task('calc', 100,
-                 # метод для промежуточных данных (можно не создавать).
-                 progress_handler='_show_process_graph',
-                 # метод для итоговых данных.
-                 done_handler='_done_graph')
+            'calc', params=100,
+            # метод для промежуточных данных (можно не создавать).
+            progress_handler=self._show_process_graph,
+            # метод для итоговых данных.
+            done_handler=self._done_graph
         )
 
     def _done_graph(self, result: Result):
@@ -97,12 +97,16 @@ class MainWindow(BaseWindow):
 3. Чтобы отправить задачу определенному воркеру надо:
     - Уточнить его название с помощью `TaskType` при отправке задачи:
       ```python
-      from config.config import Task, TaskType
+      from config.config import TaskType
+      from gui.base_window import BaseWindow 
       
-      task = Task(
-        'calc', 100, 
-        task_type=TaskType.NAME_WORKER # По умолчанию = TaskType.WORKER
-      )
+      class MainWindow(BaseWindow):
+        ...
+        def _run(self):
+          self.bridge.send_task(
+            'calc', 100, 
+            task_type=TaskType.NAME_WORKER # По умолчанию = TaskType.WORKER
+          )
       ```
     - Если нужны callback методы, то передаем их название как в первом примере.
 
@@ -139,7 +143,7 @@ class MainWindow(BaseWindow):
        # Кидаем конечный результат.
        self.send_result(result=(number, result), status=Status.DONE, progress=100)w
    ```
-4. Обращаемся в Task(...) по переданному в `register_task('calc')` имени,
+4. Обращаемся в `self.bridge.send_task(name_task='calc')` по переданному в `register_task('calc')` имени,
    если метод был создан не в Worker то, смотрим пункт 2 - Если у вас 2 и более воркеров или другое имя класса.
 
 ### Как создать Bridge:
