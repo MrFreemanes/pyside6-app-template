@@ -41,9 +41,10 @@ class MainWindowTest(TestCase):
 
         self.assertFalse(self_mock.ui.btn_calc_T1.setEnabled.call_args[0][0])
         self_mock.bridge.send_task.assert_called_once_with(
-            Task('calc', 100,
-                 progress_handler='_show_process_graph',
-                 done_handler='_done_graph')
+            'calc',
+            {'num': 100},
+            done_handler=self_mock._done_graph,
+            progress_handler=self_mock._show_process_graph
         )
 
 

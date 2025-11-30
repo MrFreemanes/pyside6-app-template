@@ -15,42 +15,42 @@ class BaseBridgeTest(TestCase):
     def setUp(self):
         self.result_q = Queue(maxsize=2)
         self.task = Task('calc', 100, )
+        self.task_kwargs = {
+            'task_name': 'calc',
+            'params': 100,
+        }
 
     def test_send_task(self):
         send_task = Bridge.send_task
         self_mock = Mock()
-        send_task(self_mock, self.task)
+        send_task(self_mock, **self.task_kwargs)
 
         self.assertEqual(self_mock._task_q.put.call_args[0][0], self.task)
         self.assertEqual(
             self_mock.logger.debug.call_args[0],
-            ('Задача отправлена в \"task_q\" с параметром: %s', self.task)
+            ('Задача отправлена в \"task_q\" с аргументами: %s', self.task)
         )
 
     def test_send_bad_task(self):
         send_task = Bridge.send_task
-        bad_task = 'calc'
+        bad_task = 'asjf;ashkfhsdf'
         self_mock = Mock()
-        send_task(self_mock, bad_task)
+        send_task(self_mock, bad_task, 123, task_type='asda')
 
         self.assertEqual(
-            self_mock.logger.error.call_args[0],
-            ('Неверный тип задачи: %s', type(bad_task))
-        )
-        self.assertEqual(
-            self_mock.logger.exception.call_args[0][0],
-            'Ошибка при отправке задачи в \"task_q\": %s',
+            self_mock.logger.error.call_args[0][0],
+            'Некорректные аргументы: %s для %s',
         )
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],
-            f"Ошибка при отправке задачи: Неверный тип задачи: {type(bad_task)}, а должен быть: Task"
+            f'Некорректные аргументы для {bad_task}'
         )
 
     def test_send_task_in_full_queue(self):
         send_task = Bridge.send_task
         self_mock = Mock()
         self_mock._task_q.put.side_effect = Full()
-        send_task(self_mock, self.task)
+        send_task(self_mock, **self.task_kwargs)
 
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],
@@ -96,7 +96,7 @@ class BaseBridgeTest(TestCase):
         )
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],
-            f"Ошибка при получении результата: Неверный тип результата: {type(result)}, а должен быть: Result"
+            "Ошибка при получении результата"
         )
 
 
