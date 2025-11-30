@@ -1,3 +1,4 @@
+from enum import Enum
 from queue import Queue
 from unittest import TestCase, main
 from unittest.mock import MagicMock, Mock
@@ -19,6 +20,10 @@ class TestTask(Task):
         pass
 
 
+class TaskType(Enum):
+    TEST_WORKER = 'TestWorker'
+
+
 class BaseWorkerTest(TestCase):
     def setUp(self):
         self.task_q = Queue()
@@ -36,7 +41,7 @@ class BaseWorkerTest(TestCase):
                      params=10,
                      done_handler='done_handler',
                      progress_handler='progress_handler',
-                     task_type='TestWorker')
+                     task_type=TaskType.TEST_WORKER)
         )
         self.task_q.put(None)
         self.worker.run()

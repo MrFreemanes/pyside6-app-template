@@ -85,7 +85,7 @@ class BaseWorker(ABC):
         self.task_q.put(None)
         self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
 
-    def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
+    def send_result(self, result: Any, status: Status, progress: int, *, text_error: str | None = None) -> None:
         """
         Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
@@ -123,4 +123,4 @@ class BaseWorker(ABC):
 
     def _can_handle(self) -> bool:
         """Проверка типа задачи."""
-        return self.item.task_type == self.__class__.__name__
+        return self.item.task_type.value == self.__class__.__name__

@@ -8,7 +8,7 @@ from typing import Any, Callable
 from PySide6.QtCore import QObject, Signal, QTimer
 
 from logs.logger_cfg import cfg
-from config.config import Result
+from config.config import Result, TaskType
 from utils.bridge_utils import get_task_from_parameters
 
 
@@ -44,7 +44,7 @@ class BaseBridge(QObject):
         self._timer.timeout.connect(self._check_result)
         self._timer.start(self._interval)
 
-    def send_task(self, task_name: str, params: Any, *, task_type: str = None,
+    def send_task(self, task_name: str, params: Any, *, task_type: TaskType = None,
                   done_handler: Callable = None, progress_handler: Callable = None) -> None:
         """Проверяет тип и отправляет задачу в очередь."""
         try:

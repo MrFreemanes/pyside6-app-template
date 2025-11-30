@@ -2,8 +2,17 @@ from typing import Any, Callable
 from config.config import Task, TaskType
 
 
-def get_task_from_parameters(task_name: str, params: Any, *, task_type: str | None,
+def get_task_from_parameters(task_name: str, params: Any, *, task_type: TaskType | None,
                              done_handler: Callable | None, progress_handler: Callable | None) -> Task:
+    """
+    Получает данные для создания задачи для воркера.
+    :param task_name: Имя задачи в воркере.
+    :param params: Параметры, которые придут в воркер.
+    :param task_type: Имя воркера.
+    :param done_handler: Метод для конечных действий.
+    :param progress_handler: Метод для промежуточных действий.
+    :return: Task - готовая задача для отправления в воркер.
+    """
     if done_handler is not None and not callable(done_handler):
         raise ValueError("done_handler must be callable or None")
     if progress_handler is not None and not callable(progress_handler):
