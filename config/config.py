@@ -28,7 +28,7 @@ class Task:
     :done_handler: Название метода для конечного вызова.
     """
     task_name: str
-    num: int
+    params: Any
 
     task_type: str = TaskType.WORKER
     # название методов для вызова в GUI

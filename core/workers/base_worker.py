@@ -118,7 +118,7 @@ class BaseWorker(ABC):
             handler(self)
         except Exception as e:
             self.result_q.put(Result((), Status.ERROR, 100,
-                                     text_error=f'Ошибка при выполнении задачи {task_name}: {e}'))
+                                     text_error=f'Ошибка при выполнении задачи {task_name}'))
             self.logger.exception('Ошибка при выполнении задачи %s', task_name)
 
     def _can_handle(self) -> bool:

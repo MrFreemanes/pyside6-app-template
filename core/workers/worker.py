@@ -16,7 +16,7 @@ class Worker(BaseWorker):
         Пример метода с CPU нагрузкой.
         :self.item: Task from config/config.py
         """
-        number = self.item.num
+        number = self.item.params['num']
         check_list = {1, 2}
 
         @lru_cache(maxsize=32)

@@ -3,11 +3,13 @@ import logging
 from logging import config
 from abc import abstractmethod
 from queue import Full, Empty
+from typing import Any, Callable
 
 from PySide6.QtCore import QObject, Signal, QTimer
 
 from logs.logger_cfg import cfg
-from config.config import Task, Result
+from config.config import Result
+from utils.bridge_utils import get_task_from_parameters
 
 
 class BaseBridge(QObject):
@@ -42,21 +44,24 @@ class BaseBridge(QObject):
         self._timer.timeout.connect(self._check_result)
         self._timer.start(self._interval)
 
-    def send_task(self, params: Task) -> None:
+    def send_task(self, task_name: str, params: Any, *, task_type: str = None,
+                  done_handler: Callable = None, progress_handler: Callable = None) -> None:
         """Проверяет тип и отправляет задачу в очередь."""
         try:
-            if not isinstance(params, Task):
-                self.logger.error('Неверный тип задачи: %s', type(params))
-                raise TypeError(f'Неверный тип задачи: {type(params)}, а должен быть: Task')
+            task = get_task_from_parameters(task_name=task_name, params=params, task_type=task_type,
+                                            done_handler=done_handler, progress_handler=progress_handler)
 
-            self._task_q.put(params, block=False)
-            self.logger.debug('Задача отправлена в \"task_q\" с параметром: %s', params)
+            self._task_q.put(task, block=False)
+            self.logger.debug('Задача отправлена в \"task_q\" с аргументами: %s', task)
         except Full:
             self.error_signal.emit('Очередь задач переполнена')
             self.logger.warning('Очередь \"task_q\" переполнена')
+        except ValueError as e:
+            self.logger.error('Некорректные аргументы: %s для %s', e, task_name)
+            self.error_signal.emit(f'Некорректные аргументы для {task_name}')
         except Exception as e:
             self.logger.exception('Ошибка при отправке задачи в \"task_q\": %s', e)
-            self.error_signal.emit(f'Ошибка при отправке задачи: {e}')
+            self.error_signal.emit(f'Ошибка при отправке задачи')
 
     def _check_result(self) -> None:
         """Проверить очередь на наличие результата и эмитить нужный сигнал."""
@@ -74,7 +79,7 @@ class BaseBridge(QObject):
             pass
         except Exception as e:
             self.logger.exception('Ошибка при получении результата из \"result_q\": %s', e)
-            self.error_signal.emit(f'Ошибка при получении результата: {e}')
+            self.error_signal.emit(f'Ошибка при получении результата')
 
     @abstractmethod
     def _handle_result(self, result: Result) -> None:
