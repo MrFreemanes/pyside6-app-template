@@ -17,7 +17,6 @@ def attach_context_menu(widget: QWidget, action: dict) -> None:
 
     :param widget: Qt-виджет
     :param action: dict {"Название действия": callback}
-    :return:
     """
 
     widget.setContextMenuPolicy(Qt.CustomContextMenu)

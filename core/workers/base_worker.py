@@ -80,12 +80,17 @@ class BaseWorker(ABC):
 
             self._distributor(self.item.task_name)
 
+    def start(self, daemon=True):
+        """Создает процесс (run) и запускает его."""
+        worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
+        worker.start()
+
     def stop(self) -> None:
         """Кидает None в очередь."""
         self.task_q.put(None)
         self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
 
-    def send_result(self, result: Any, status: str, progress: int, *, text_error: str | None = None) -> None:
+    def send_result(self, result: Any, status: Status, progress: int, *, text_error: str | None = None) -> None:
         """
         Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
@@ -118,9 +123,9 @@ class BaseWorker(ABC):
             handler(self)
         except Exception as e:
             self.result_q.put(Result((), Status.ERROR, 100,
-                                     text_error=f'Ошибка при выполнении задачи {task_name}: {e}'))
+                                     text_error=f'Ошибка при выполнении задачи {task_name}'))
             self.logger.exception('Ошибка при выполнении задачи %s', task_name)
 
     def _can_handle(self) -> bool:
         """Проверка типа задачи."""
-        return self.item.task_type == self.__class__.__name__
+        return self.item.task_type.value == self.__class__.__name__

@@ -1,8 +1,7 @@
 from gui.base_window import BaseWindow
 from gui.ui.ui_untitled import Ui_MainWindow
 from gui.widgets.graphs.graph import Graph
-
-from config.config import Result, Task
+from config.config import Result
 
 
 class MainWindow(BaseWindow):
@@ -25,9 +24,10 @@ class MainWindow(BaseWindow):
         """
         self.ui.btn_calc_T1.setEnabled(False)
         self.bridge.send_task(
-            Task('calc', 100,
-                 progress_handler='_show_process_graph',
-                 done_handler='_done_graph')
+            'calc',
+            {'num': 100},
+            done_handler=self._done_graph,
+            progress_handler=self._show_process_graph
         )
 
         self.logger.debug('Задача отправлена')

@@ -1,3 +1,4 @@
+from enum import Enum
 from queue import Queue
 from unittest import TestCase, main
 from unittest.mock import MagicMock, Mock
@@ -11,12 +12,16 @@ NAME_FUNC = 'put_back'
 class TestWorker(BaseWorker):
     @BaseWorker.register_task(NAME_FUNC)
     def put_back(self):
-        self.send_result(self.item.num, Status.DONE, 100)
+        self.send_result(self.item.params, Status.DONE, 100)
 
 
 class TestTask(Task):
     def __post_init__(self):
         pass
+
+
+class TaskType(Enum):
+    TEST_WORKER = 'TestWorker'
 
 
 class BaseWorkerTest(TestCase):
@@ -33,10 +38,10 @@ class BaseWorkerTest(TestCase):
     def test_run(self):
         self.task_q.put(
             TestTask(task_name=NAME_FUNC,
-                     num=10,
+                     params=10,
                      done_handler='done_handler',
                      progress_handler='progress_handler',
-                     task_type='TestWorker')
+                     task_type=TaskType.TEST_WORKER)
         )
         self.task_q.put(None)
         self.worker.run()

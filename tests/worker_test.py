@@ -15,7 +15,7 @@ class WorkerTest(TestCase):
         self.worker.logger = MagicMock()
 
     def test_calc(self):
-        self.task_q.put(Task('calc', 3))
+        self.task_q.put(Task('calc', {'num': 3}))
         self.task_q.put(None)
         self.worker.run()
 
