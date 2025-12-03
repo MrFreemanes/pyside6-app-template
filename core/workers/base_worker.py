@@ -80,6 +80,11 @@ class BaseWorker(ABC):
 
             self._distributor(self.item.task_name)
 
+    def start(self, daemon=True):
+        """Создает процесс (run) и запускает его."""
+        worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
+        worker.start()
+
     def stop(self) -> None:
         """Кидает None в очередь."""
         self.task_q.put(None)

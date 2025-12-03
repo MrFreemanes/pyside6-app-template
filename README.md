@@ -27,13 +27,13 @@
 1. Скопируй шаблон.
 2. Используй стандартный воркер `Worker` если тебе нужен 1 Worker-процесс или создай свой наследуя `BaseWorker`.
 3. Используй стандартный `Bridge` или создай совой наследуя `BaseBridge`.
-4. Создай свое окно, наследуя `BaseWindow`.
+4. Создай свое окно, наследуя `BaseWindow`, перед этим сохрани .py файл в gui/ui/ из QtDesigner.
 5. Если нужно, создай свой график, наследуя `BaseGraph`, и подключи его к интерфейсу.
 6. Настрой callback для отправки задачи и выполнения действий после/во время ее выполнения:
     - Создай метод в `MainWindow` для отображения конечных расчетов (и если надо промежуточных).
     - Просто отправляй задачу через
-      `self.bridge.send_task(name_task='calc', params=Any, progress_handler=self.name_method, done_handler=self.name_done_method)` в методе
-      подключенном например к кнопке.
+      `self.bridge.send_task(name_task='calc', params=Any, progress_handler=self.name_method, done_handler=self.name_done_method)`
+      в методе подключенном например к кнопке.
 
 ---
 
@@ -72,13 +72,13 @@ class MainWindow(BaseWindow):
 
 
 """
-В этом коде, Worker будет выполнять задачу 
+В этом коде, Worker будет выполнять задачу "calc"
 и если он возвращает промежуточные значения,
 то будет выполняться self._show_process_graph(result).
 На последней итерации будут получены конечные данные
 и выполниться метод self._done_graph(result).
-Это возможно благородя Status.RUN, Status.DONE
-при передаче значений из Worker.
+Это возможно благородя Status при передаче 
+значений из send_result(..., status=Status.RUN) в Worker.
 """
 ```
 
@@ -86,7 +86,7 @@ class MainWindow(BaseWindow):
 
 1. Добавляем в класс `TaskType` в `config\config.py` их название:
     - ```python
-      class TaskType:
+      class TaskType(Enum):
         WORKER = 'Worker'
         WRITER = 'Writer'
         WORKER_1 = 'NAME_WORKER_1' 
@@ -141,7 +141,7 @@ class MainWindow(BaseWindow):
     
        self.logger.debug('result: %s', result)
        # Кидаем конечный результат.
-       self.send_result(result=(number, result), status=Status.DONE, progress=100)w
+       self.send_result(result=(number, result), status=Status.DONE, progress=100)
    ```
 4. Обращаемся в `self.bridge.send_task(name_task='calc')` по переданному в `register_task('calc')` имени,
    если метод был создан не в Worker то, смотрим пункт 2 - Если у вас 2 и более воркеров или другое имя класса.
