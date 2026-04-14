@@ -74,7 +74,7 @@ class BaseBridge(QObject):
                     self.logger.error('Неверный тип результата: %s', type(result))
                     raise TypeError(f'Неверный тип результата: {type(result)}, а должен быть: Result')
 
-                self._handle_result(result)
+                self.handle_result(result)
         except Empty:
             pass
         except Exception as e:
@@ -82,6 +82,6 @@ class BaseBridge(QObject):
             self.error_signal.emit(f'Ошибка при получении результата')
 
     @abstractmethod
-    def _handle_result(self, result: Result) -> None:
+    def handle_result(self, result: Result) -> None:
         """Передача сигнала при получении результата."""
         pass

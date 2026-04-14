@@ -20,8 +20,7 @@ def main():
     result_q = mp.Queue()
 
     worker = Worker(task_q, result_q)
-    w = mp.Process(target=worker.run, daemon=True)
-    w.start()
+    worker.start()
 
     app = QApplication(sys.argv)
     window = MainWindow(Bridge(task_q, result_q, interval=50))
@@ -29,8 +28,6 @@ def main():
     app.exec()
 
     worker.stop()
-    w.terminate()
-    w.join(timeout=1)
 
 
 if __name__ == '__main__':

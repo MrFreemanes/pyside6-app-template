@@ -10,7 +10,7 @@ class Bridge(BaseBridge):
     Отправляет результат через Signal.emit(result).
     """
 
-    def _handle_result(self, result: Result) -> None:
+    def handle_result(self, result: Result) -> None:
         """Передача сигнала при получении результата."""
         match result.status:
             case Status.RUN:
