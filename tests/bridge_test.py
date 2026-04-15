@@ -10,7 +10,7 @@ class BridgeTest(TestCase):
         class BadStatus:
             status = 'asd'
 
-        handle_result = Bridge._handle_result
+        handle_result = Bridge.handle_result
         result_done = Result(100, Status.DONE, 100)
         result_run = Result(50, Status.RUN, 50)
         result_error = Result((), Status.ERROR, 100, text_error='ERROR')

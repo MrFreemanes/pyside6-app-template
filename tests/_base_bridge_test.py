@@ -74,7 +74,7 @@ class BaseBridgeTest(TestCase):
         check_result(self_mock)
 
         self.assertEqual(self_mock.logger.debug.call_args[0][0], 'Получены данные из \"result_q\"')
-        self.assertEqual(self_mock._handle_result.call_args[0][0], result)
+        self.assertEqual(self_mock.handle_result.call_args[0][0], result)
 
     def test_check_bad_result(self):
         check_result = Bridge._check_result
