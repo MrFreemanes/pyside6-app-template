@@ -90,7 +90,8 @@ class BaseWorker(ABC):
         self.task_q.put(None)
         self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
 
-    def send_result(self, result: Any, status: Status, progress: int, *, text_error: str | None = None) -> None:
+    def send_result(self, result: Any, status: Status, progress: int | None = None,
+                    *, text_error: str | None = None) -> None:
         """
         Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
@@ -124,7 +125,7 @@ class BaseWorker(ABC):
         except Exception as e:
             self.result_q.put(Result((), Status.ERROR, 100,
                                      text_error=f'Ошибка при выполнении задачи {task_name}'))
-            self.logger.exception('Ошибка при выполнении задачи %s', task_name)
+            self.logger.exception('Ошибка при выполнении задачи %s, %s', task_name, e)
 
     def _can_handle(self) -> bool:
         """Проверка типа задачи."""

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+NAME_APP = "MyApp"
 
 class Status(Enum):
     """Используется в Bridge и в worker для установки статуса выполнения."""
@@ -52,7 +53,7 @@ class Result:
     """
     result: Any
     status: Status
-    progress: int
+    progress: int  | None = None
 
     text_error: str | None = None
     # название методов для вызова в GUI
@@ -60,8 +61,20 @@ class Result:
     done_handler: str | None = None
 
     def __post_init__(self):
-        if not isinstance(self.status, Status):
-            raise ValueError(f"Invalid status: {self.status}")
+        if self.progress_handler is not None and not isinstance(self.progress_handler, str):
+            raise ValueError(f"Неверный тип progress_handler: {type(self.progress_handler)}")
 
-        if self.status == Status.ERROR and not self.text_error:
-            raise ValueError("text_error must be provided when status=ERROR")
+        if self.done_handler is not None and not isinstance(self.done_handler, str):
+            raise ValueError(f"Неверный тип done_handler: {type(self.done_handler)}")
+
+        if self.progress is not None and not isinstance(self.progress, int):
+            raise ValueError(f"Неверный тип progress: {type(self.progress)}")
+
+        if self.result is not None and callable(self.result):
+            raise ValueError("result не должен быть callable")
+
+        if not isinstance(self.status, Status):
+            raise ValueError(f"Неверный тип status: {type(self.status)}")
+
+        if self.status == Status.ERROR and not self.text_error and callable(self.text_error):
+            raise ValueError("При status=ERROR необходимо указать текст ошибки с str")
