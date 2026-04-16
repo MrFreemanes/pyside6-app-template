@@ -1,6 +1,6 @@
 import logging
-from abc import abstractmethod
 from logging import config
+from abc import abstractmethod
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QMainWindow, QApplication
@@ -57,11 +57,14 @@ class BaseWindow(QMainWindow):
         }.get(result.status)
 
         if method_name:
-            getattr(self, method_name)(result)
+            try:
+                getattr(self, method_name)(result)
+            except AttributeError:
+                self.logger.error("Нет метода %s", method_name)
 
     def _dialog_error(self, message: str) -> None:
         """
-        Подключается к сигналу который уведомляет о промежуточных результатах.
+        Подключается к сигналу который уведомляет об ошибках.
         :param message: Сообщение, которое будет показано пользователю.
         """
         QApplication.beep()
