@@ -2,14 +2,20 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from utils.config_utils import check_handler
+
 NAME_APP = "MyApp"
 
 
 class Status(Enum):
-    """Используется в Bridge и в worker для установки статуса выполнения."""
+    """
+    Используется в Bridge и в worker для установки статуса выполнения.
+    FINALLY - служебный статус, не предназначен для использования в пользовательской логике.
+    """
     RUN = 'run'
     DONE = 'done'
     ERROR = 'error'
+    FINALLY = 'finally'
 
 
 class TaskType(Enum):
@@ -37,8 +43,13 @@ class Task:
     # название методов для вызова в GUI
     progress_handler: str | None = None
     done_handler: str | None = None
+    finally_handler: str | None = None
 
     def __post_init__(self):
+        check_handler(self.progress_handler)
+        check_handler(self.done_handler)
+        check_handler(self.finally_handler)
+
         if not isinstance(self.task_name, str):
             raise ValueError(f"Неверный тип task_name: {type(self.task_name)}")
 
@@ -47,12 +58,6 @@ class Task:
 
         if not isinstance(self.task_type, TaskType):
             raise ValueError(f"Неверный тип task_type: {type(self.task_type)}")
-
-        if self.progress_handler is not None and not isinstance(self.progress_handler, str):
-            raise ValueError(f"Неверный тип progress_handler: {type(self.progress_handler)}")
-
-        if self.done_handler is not None and not isinstance(self.done_handler, str):
-            raise ValueError(f"Неверный тип done_handler: {type(self.done_handler)}")
 
 
 @dataclass(frozen=True)
@@ -72,13 +77,12 @@ class Result:
     # название методов для вызова в GUI
     progress_handler: str | None = None
     done_handler: str | None = None
+    finally_handler: str | None = None
 
     def __post_init__(self):
-        if self.progress_handler is not None and not isinstance(self.progress_handler, str):
-            raise ValueError(f"Неверный тип progress_handler: {type(self.progress_handler)}")
-
-        if self.done_handler is not None and not isinstance(self.done_handler, str):
-            raise ValueError(f"Неверный тип done_handler: {type(self.done_handler)}")
+        check_handler(self.progress_handler)
+        check_handler(self.done_handler)
+        check_handler(self.finally_handler)
 
         if self.progress is not None and not isinstance(self.progress, int):
             raise ValueError(f"Неверный тип progress: {type(self.progress)}")
@@ -89,6 +93,5 @@ class Result:
         if not isinstance(self.status, Status):
             raise ValueError(f"Неверный тип status: {type(self.status)}")
 
-        if self.status == Status.ERROR and not self.text_error and callable(self.text_error):
+        if self.status == Status.ERROR and not isinstance(self.text_error, str):
             raise ValueError("При status=ERROR необходимо указать текст ошибки с str")
-
