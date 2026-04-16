@@ -4,6 +4,7 @@ from typing import Any
 
 NAME_APP = "MyApp"
 
+
 class Status(Enum):
     """Используется в Bridge и в worker для установки статуса выполнения."""
     RUN = 'run'
@@ -38,8 +39,20 @@ class Task:
     done_handler: str | None = None
 
     def __post_init__(self):
+        if not isinstance(self.task_name, str):
+            raise ValueError(f"Неверный тип task_name: {type(self.task_name)}")
+
+        if self.params is not None and callable(self.params):
+            raise ValueError("params не должен быть callable")
+
         if not isinstance(self.task_type, TaskType):
-            raise ValueError(f"Invalid task_type: {self.task_type}")
+            raise ValueError(f"Неверный тип task_type: {type(self.task_type)}")
+
+        if self.progress_handler is not None and not isinstance(self.progress_handler, str):
+            raise ValueError(f"Неверный тип progress_handler: {type(self.progress_handler)}")
+
+        if self.done_handler is not None and not isinstance(self.done_handler, str):
+            raise ValueError(f"Неверный тип done_handler: {type(self.done_handler)}")
 
 
 @dataclass(frozen=True)
@@ -53,7 +66,7 @@ class Result:
     """
     result: Any
     status: Status
-    progress: int  | None = None
+    progress: int | None = None
 
     text_error: str | None = None
     # название методов для вызова в GUI
@@ -78,3 +91,4 @@ class Result:
 
         if self.status == Status.ERROR and not self.text_error and callable(self.text_error):
             raise ValueError("При status=ERROR необходимо указать текст ошибки с str")
+
