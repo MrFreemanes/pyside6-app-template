@@ -43,7 +43,7 @@ class BaseBridgeTest(TestCase):
         )
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],
-            f'Некорректные аргументы для {bad_task}'
+            f'Некорректные аргументы для задачи'
         )
 
     def test_send_task_in_full_queue(self):

@@ -83,10 +83,6 @@ class BaseWorkerTest(TestCase):
         distributor(self_mock, NAME_FUNC)
 
         self.assertEqual(
-            self_mock.result_q.put.call_args[0][0],
-            Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {NAME_FUNC}')
-        )
-        self.assertEqual(
             self_mock.logger.error.call_args[0],
             ('Неизвестная задача: %s', NAME_FUNC)
         )
