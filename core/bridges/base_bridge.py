@@ -58,7 +58,7 @@ class BaseBridge(QObject):
             self.logger.warning('Очередь \"task_q\" переполнена')
         except ValueError as e:
             self.logger.error('Некорректные аргументы: %s для %s', e, task_name)
-            self.error_signal.emit(f'Некорректные аргументы для {task_name}')
+            self.error_signal.emit(f'Некорректные аргументы для задачи')
         except Exception as e:
             self.logger.exception('Ошибка при отправке задачи в \"task_q\": %s', e)
             self.error_signal.emit(f'Ошибка при отправке задачи')

@@ -33,6 +33,7 @@ class BaseWorker(ABC):
         :param task_q: Очередь с задачами
         :param result_q: Очередь с результатами
         """
+        self.worker = None
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger(f'log_worker_{self.__class__.__name__}')
         self.logger.debug('%s инициализирован', self.__class__.__name__)
@@ -82,13 +83,14 @@ class BaseWorker(ABC):
 
     def start(self, daemon=True):
         """Создает процесс (run) и запускает его."""
-        worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
-        worker.start()
+        self.worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
+        self.worker.start()
 
     def stop(self) -> None:
-        """Кидает None в очередь."""
-        self.task_q.put(None)
-        self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
+        """Останавливает процесс."""
+        self.worker.terminate()
+        self.worker.join()
+        self.logger.debug('%s остановлен', self.__class__.__name__)
 
     def send_result(self, result: Any, status: Status, progress: int | None = None,
                     *, text_error: str | None = None) -> None:
@@ -116,15 +118,13 @@ class BaseWorker(ABC):
         """
         handler = self._task_map.get(task_name)
         if not handler:
-            self.result_q.put(Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {task_name}'))
             self.logger.error('Неизвестная задача: %s', task_name)
             return
 
         try:
             handler(self)
         except Exception as e:
-            self.result_q.put(Result((), Status.ERROR, 100,
-                                     text_error=f'Ошибка при выполнении задачи {task_name}'))
+            self.send_result((), Status.ERROR, text_error='Ошибка при выполнении задачи')
             self.logger.exception('Ошибка при выполнении задачи %s, %s', task_name, e)
 
     def _can_handle(self) -> bool:
