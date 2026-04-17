@@ -18,6 +18,9 @@ class Bridge(BaseBridge):
             case Status.DONE:
                 self.result_signal.emit(result)
                 self.logger.debug('Получены последние данные')
+            case Status.FINALLY:
+                self.result_signal.emit(result)
+                self.logger.debug('Получен сигнал об окончании работы метода в worker')
             case Status.ERROR:
                 self.error_signal.emit(result.text_error)
                 self.logger.debug('Получена ошибка: %s', result.text_error)

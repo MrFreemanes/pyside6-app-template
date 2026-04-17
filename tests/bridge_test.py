@@ -14,15 +14,17 @@ class BridgeTest(TestCase):
         result_done = Result(100, Status.DONE, 100)
         result_run = Result(50, Status.RUN, 50)
         result_error = Result((), Status.ERROR, 100, text_error='ERROR')
+        result_finally = Result((), Status.FINALLY)
         result_bad_status = BadStatus()
         self_mock = Mock()
 
         handle_result(self_mock, result_done)
         handle_result(self_mock, result_run)
+        handle_result(self_mock, result_finally)
         handle_result(self_mock, result_error)
         handle_result(self_mock, result_bad_status)
 
-        self_mock.result_signal.emit.assert_has_calls([call(result_done), call(result_run)])
+        self_mock.result_signal.emit.assert_has_calls([call(result_done), call(result_run), call(result_finally)])
         self_mock.error_signal.emit.assert_has_calls(
             [
                 call(result_error.text_error),
@@ -33,6 +35,7 @@ class BridgeTest(TestCase):
         self_mock.logger.debug.assert_has_calls(
             [
                 call('Получены последние данные'),
+                call('Получен сигнал об окончании работы метода в worker'),
                 call('Получена ошибка: %s', result_error.text_error),
             ]
         )

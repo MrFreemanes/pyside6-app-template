@@ -19,18 +19,14 @@ class MainWindow(BaseWindow):
     # --- реализация приложения ---
     def _run(self) -> None:
         """ПРИМЕР.
-        Отключает виджеты при начале расчетов.
-        Уведомляет мост о задаче.
+        Отключает кнопку. Отправляет параметры в Bridge для работы.
         """
-        self.ui.btn_calc_T1.setEnabled(False)
-        self.bridge.send_task(
-            'calc',
-            {'num': 100},
-            done_handler=self._done_graph,
-            progress_handler=self._show_process_graph
-        )
-
-        self.logger.debug('Задача отправлена')
+        self.run_task('calc',
+                      {'num': 100},
+                      widgets_block=[self.ui.btn_calc_T1],
+                      done_handler=self._done_graph,
+                      progress_handler=self._show_process_graph,
+                      finally_handler=self._finally_run)
 
     def _show_process_graph(self, result: Result) -> None:
         """ПРИМЕР.
@@ -47,11 +43,16 @@ class MainWindow(BaseWindow):
         """ПРИМЕР.
         Подключается к сигналу который уведомляет о завершении расчетов.
         Производит действия необходимые при завершении расчетов.
-        Снимает блокировку ранее отключенных виджетов.
         :param result: Результат вычислений ().
         """
         self.graph.plot_final(*result.result)
         self.ui.progress_bar_T1.setValue(100)
-        self.ui.btn_calc_T1.setEnabled(True)
 
         self.logger.debug('Расчет окончен. График постоен')
+
+    def _finally_run(self) -> None:
+        """ПРИМЕР.
+        Включает кнопку, отключенную в self._run.
+        Запускается в любом случае: ошибка в работе worker, worker успешно завершил работу.
+        """
+        self.ui.btn_calc_T1.setEnabled(True)

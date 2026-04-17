@@ -72,7 +72,7 @@ class BaseWorker(ABC):
 
             if self.item is None:
                 break
-            if not self._can_handle():
+            if not self._can_handle(self.item):
                 self.task_q.put(self.item)
                 time.sleep(0.01)
                 continue
@@ -107,7 +107,8 @@ class BaseWorker(ABC):
                    progress=progress,
                    text_error=text_error,
                    progress_handler=self.item.progress_handler,
-                   done_handler=self.item.done_handler)
+                   done_handler=self.item.done_handler,
+                   finally_handler=self.item.finally_handler)
         )
 
     def _distributor(self, task_name: str) -> None:
@@ -118,6 +119,7 @@ class BaseWorker(ABC):
         """
         handler = self._task_map.get(task_name)
         if not handler:
+            self.send_result((), Status.FINALLY)
             self.logger.error('Неизвестная задача: %s', task_name)
             return
 
@@ -126,7 +128,9 @@ class BaseWorker(ABC):
         except Exception as e:
             self.send_result((), Status.ERROR, text_error='Ошибка при выполнении задачи')
             self.logger.exception('Ошибка при выполнении задачи %s, %s', task_name, e)
+        finally:
+            self.send_result((), Status.FINALLY)
 
-    def _can_handle(self) -> bool:
+    def _can_handle(self, item) -> bool:
         """Проверка типа задачи."""
-        return self.item.task_type.value == self.__class__.__name__
+        return item.task_type.value == self.__class__.__name__

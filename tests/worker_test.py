@@ -15,15 +15,49 @@ class WorkerTest(TestCase):
         self.worker.logger = MagicMock()
 
     def test_calc(self):
-        self.task_q.put(Task('calc', {'num': 3}))
+        self.task_q.put(
+            Task(
+                'calc',
+                {'num': 3},
+                done_handler='done_handler',
+                progress_handler='progress_handler',
+                finally_handler='finally_handler'
+            )
+        )
         self.task_q.put(None)
         self.worker.run()
 
         self.assertEqual(self.result_q.get(),
-                         Result(result=(3, 2), status=Status.RUN, progress=100))
+                         Result(
+                             result=(3, 2),
+                             status=Status.RUN,
+                             progress=100,
+                             done_handler='done_handler',
+                             progress_handler='progress_handler',
+                             finally_handler='finally_handler'
+                         )
+                         )
 
         self.assertEqual(self.result_q.get(),
-                         Result(result=(3, 2), status=Status.DONE, progress=100))
+                         Result(
+                             result=(3, 2),
+                             status=Status.DONE,
+                             progress=100,
+                             done_handler='done_handler',
+                             progress_handler='progress_handler',
+                             finally_handler='finally_handler'
+                         )
+                         )
+
+        self.assertEqual(self.result_q.get(),
+                         Result(
+                             result=(),
+                             status=Status.FINALLY,
+                             done_handler='done_handler',
+                             progress_handler='progress_handler',
+                             finally_handler='finally_handler'
+                         )
+                         )
 
         self.assertTrue(self.result_q.empty())
 
