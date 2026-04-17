@@ -18,7 +18,7 @@
 - [x] Базовые классы для быстрого наследования (`BaseBridge`, `BaseWindow`, `BaseWorker`, `BaseGraph`).
 - [x] Простое создание приложения по шаблону, достаточно реализовать метод с "вычислениями" в `Worker` и
   взаимодействовать с ним в
-  `MainWindow` через `Bridge`.
+  `MainWindow` через `self.run_task(...)`.
 
 ---
 
@@ -49,14 +49,34 @@ Python версии 3.13
 
 1. Скопируйте шаблон.
 2. Используйте стандартный воркер `Worker` если нужен 1 Worker-процесс или создайте свой наследуя `BaseWorker`.
-3. Используйте стандартный `Bridge` или создайте совой наследуя `BaseBridge`.
-4. Создайте свое окно, наследуя `BaseWindow`, перед этим сохранив .ui файл в формате .py в gui/ui/ из QtDesigner.
-5. Если нужно, создайте свой график, наследуя `BaseGraph`, и подключите его к интерфейсу.
-6. Настройте callback для отправки задачи и выполнения действий после/во время ее выполнения:
+3. Создайте свое окно, наследуя `BaseWindow`, перед этим сохранив .ui файл в формате .py в gui/ui/ из QtDesigner.
+4. Если нужно, создайте свой график, наследуя `BaseGraph`, и подключите его к интерфейсу.
+5. Настройте callback для отправки задачи и выполнения действий после/во время ее выполнения:
     - Создайте метод в `MainWindow` для отображения конечных расчетов (и если надо промежуточных).
     - Просто отправляйте задачу через
-      `self.bridge.send_task(name_task='calc', params=Any, progress_handler=self.name_method, done_handler=self.name_done_method)`
-      в методе подключенном например к кнопке.
+
+```python
+    self.run_task(
+    name_task='calc',
+    params=Any,
+    widgets_block=self.ui.widget | [self.ui.widget_1, self.ui.widget_2, ...],
+    progress_handler=self.name_method,
+    done_handler=self.name_done_method,
+    finally_handler=self.name_finally_method
+)
+"""
+run_task — это метод из BaseWindow, позволяющий вызвать метод в воркере по имени (name_task) 
+и передать в него параметры (param) для использования их в методе воркера.
+В него можно передать виджеты, имеющие метод setEnabled для их отключения,
+и finally_handler, который будет вызываться при какой-либо ошибке так и при корректным 
+завершении работы процесса воркера. В finally_handler можно реализовать включение виджетов или 
+любой другой функционал, не требующий результата из воркера. 
+done_handler и progress_handler — методы, вызываемые в зависимости от переданного в 
+Result(... status=) статуса в воркере, для промежуточных и конечных действий.
+Передача методов для обратной связи не обязательна, можно передать как один, например 
+done_handler, так и несколько.
+"""
+```
 
 ---
 
@@ -77,13 +97,12 @@ class MainWindow(BaseWindow):
     ...
 
     def _click_btn_1(self):
-        self.bridge.send_task(
-            'calc', params=100,
-            # метод для промежуточных данных (можно не создавать).
-            progress_handler=self._show_process_graph,
-            # метод для итоговых данных.
-            done_handler=self._done_graph
-        )
+        self.run_task('calc',
+                      {'num': 100},
+                      widgets_block=[self.ui.btn_calc],
+                      done_handler=self._done_graph,
+                      progress_handler=self._show_process_graph,
+                      finally_handler=self._finally_run)
 
     def _done_graph(self, result: Result):
         self.ui.progress_bar.setValue(100)
@@ -92,6 +111,9 @@ class MainWindow(BaseWindow):
     def _show_process_graph(self, result: Result):
         self.ui.progress_bar.setValue(result.progress)
         ...
+
+    def _finally_run(self) -> None:
+        self.ui.btn_calc.setEnabled(True)
 
 
 """
@@ -102,6 +124,10 @@ class MainWindow(BaseWindow):
 и выполниться метод self._done_graph(result).
 Это возможно благородя Status при передаче 
 значений из send_result(..., status=Status.RUN) в Worker.
+В случае успешного завершения работы метода 'calc' будет вызван self._finally_run(),
+в данном случае для включения кнопки. Так же этот метод будет вызван при 
+ошибке в воркере или на этапе передачи задачи, позволяя включить кнопку или 
+произвести какие либо действия необходимые для продолжения работы приложения.
 """
 ```
 
@@ -112,7 +138,6 @@ class MainWindow(BaseWindow):
       class TaskType(Enum):
         WORKER = 'Worker'
         WRITER = 'Writer'
-        WORKER_1 = 'NAME_WORKER_1' 
         # ВАЖНО: имена обязательно должны совпадать
         # с названием класса вашего воркера.
       ```
@@ -137,7 +162,7 @@ class MainWindow(BaseWindow):
 
 1. Создаем класс-наследник от `BaseWorker`.
 2. Создаем метод нагрузки и подключаем его через `@BaseWorker.register_task('calc')`
-   (можно несколько методов, но с разными именами).
+   (можно несколько методов, но с разными именами в аргументе register_task(...)).
 3. Пример метода:
    ```python
    @BaseWorker.register_task('calc') # название которое будет в Task(...)
@@ -166,28 +191,33 @@ class MainWindow(BaseWindow):
        # Кидаем конечный результат.
        self.send_result(result=(number, result), status=Status.DONE, progress=100)
    ```
-4. Обращаемся в `self.bridge.send_task(name_task='calc')` по переданному в `register_task('calc')` имени,
-   если метод был создан не в Worker то, смотрим пункт 2 - Если у вас 2 и более воркеров или другое имя класса.
+4. Обращаемся в `self.run_task(name_task='calc')` по переданному в `register_task('...')` имени
 
 ### Как создать Bridge:
 
 1. Наследуемся от `BaseBridge` и реализуем `_handle_result()`.
 2. Пример реализации:
-    ```python
-    def _handle_result(self, result: Result) -> None:
+
+```python
+class Bridge(BaseBridge):
+    def handle_result(self, result: Result) -> None:
         match result.status:
             case Status.RUN:
                 self.result_signal.emit(result)
             case Status.DONE:
                 self.result_signal.emit(result)
                 self.logger.debug('Получены последние данные')
+            case Status.FINALLY:
+                self.result_signal.emit(result)
+                self.logger.debug('Получен сигнал об окончании работы метода в worker')
             case Status.ERROR:
                 self.error_signal.emit(result.text_error)
                 self.logger.debug('Получена ошибка: %s', result.text_error)
             case _:
                 self.error_signal.emit(f'Статус не определен: {result.status}')
                 self.logger.warning('Статус не определен: %s', result.status)
-    ```
+```
+
 3. В `main.py` при создании `MainWindow` передаем созданный Bridge.
 
 ### Как создать график:
@@ -245,9 +275,10 @@ class MainWindow(BaseWindow):
 
 ### Как работает получение и отправка задач
 
-1. Отправка: `MainWindow (self.bridge.send_task(...))` $\to$
+1. Отправка: `MainWindow (self.run_task(...))` $\to$
    `Bridge` $\to$ `Queue` $\to$
-   `Worker (если название класса и task_type совпадают)`
+   `Worker (если название класса и task_type совпадают)`. При попадании задачи в воркер с неподходящим именем воркер
+   кидает задачу обратно в очередь и останавливается на некоторое время чтобы другой воркер ее забрал.
 2. Получение: `Worker (self.send_result(...))` $\to$ `Queue` $\to$
    `Bridge` $\to$ `MainWindow (выполняются методы если их имена были переданы в Task)`
 
@@ -255,5 +286,5 @@ class MainWindow(BaseWindow):
 
 ## Будущие улучшения
 
-- [ ] Поддержка Linux и macOS путей для логов.
 - [ ] Добавить пример асинхронного воркера.
+- [ ] Возможность передавать данные из воркера-А в воркер-В
