@@ -56,7 +56,7 @@ class BaseBridge(QObject):
         :param progress_handler: Метод для выполнения промежуточного действия
                                  при возврате результата со статусом Status.RUN.
         :param finally_handler: Метод для выполнения задач в случае ошибочной и безошибочной работы worker.
-        :return: True если задача ушла в очередь без ошибок, False в ином случае.
+        :return: True если задача ушла в очередь без ошибок, иначе False.
         """
         try:
             task = get_task_from_parameters(task_name=task_name, params=params, task_type=task_type,

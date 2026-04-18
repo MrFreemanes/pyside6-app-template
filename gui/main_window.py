@@ -43,7 +43,7 @@ class MainWindow(BaseWindow):
         """ПРИМЕР.
         Подключается к сигналу который уведомляет о завершении расчетов.
         Производит действия необходимые при завершении расчетов.
-        :param result: Результат вычислений ().
+        :param result: Результат вычислений.
         """
         self.graph.plot_final(*result.result)
         self.ui.progress_bar_T1.setValue(100)
@@ -53,6 +53,6 @@ class MainWindow(BaseWindow):
     def _finally_run(self) -> None:
         """ПРИМЕР.
         Включает кнопку, отключенную в self._run.
-        Запускается в любом случае: ошибка в работе worker, worker успешно завершил работу.
+        Запускается в любом случае: ошибка в работе worker/worker успешно завершил работу.
         """
         self.ui.btn_calc_T1.setEnabled(True)

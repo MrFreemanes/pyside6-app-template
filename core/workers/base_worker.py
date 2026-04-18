@@ -13,10 +13,11 @@ from logs.logger_cfg import cfg
 class BaseWorker(ABC):
     """
     Класс-воркер. В наследнике реализуются методы с CPU-GPU-IO нагрузкой.
-    Использование (можно несколько процессов, но с уточнением типа в Task):
+    Использование (можно несколько процессов с уточнением типа в Task):
     worker = Worker(q, q)
-    w = mp.Process(target=worker.run, daemon=True)
-    w.start()
+    worker.start()
+    ...
+    worker.stop()
     """
 
     def __init_subclass__(cls, **kwargs):
@@ -30,8 +31,9 @@ class BaseWorker(ABC):
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue):
         """
-        :param task_q: Очередь с задачами
-        :param result_q: Очередь с результатами
+        :param task_q: Очередь с задачами.
+        :param result_q: Очередь с результатами.
+        :item: Задача отправленная из MainWindow.
         """
         self.worker = None
         logging.config.dictConfig(cfg)
@@ -47,7 +49,7 @@ class BaseWorker(ABC):
         """
         Добавляет методу атрибут __task_name__ для создания __task_map для конкретной реализации класса.
         Применение: оборачивать метод, который будет вызываться
-        через bridge.send_task(Task(task_name=NAME_METHOD, ...)).
+        через run_task(Task(task_name=name, ...)).
         :param name: Task.task_name - имя по которому будет выполняться задача.
         :return: Возвращает тот же метод, добавив ему атрибут __task_name__
         """
@@ -60,9 +62,8 @@ class BaseWorker(ABC):
 
     def run(self) -> None:
         """
-        Основной цикл worker-процесса. Работает пока не получит None.
-        w = mp.Process(target=worker.run, daemon=True)
-        w.start()
+        Основной цикл worker-процесса. Забирает задачи проверяя их тип.
+        При неподходящем типе возвращает задачи в очередь.
         """
         while True:
             try:
@@ -97,7 +98,7 @@ class BaseWorker(ABC):
         """
         Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
-        :param status: Status.
+        :param status: Статус выполнения.
         :param progress: (1-100).
         :param text_error: Указывается только при status==error.
         """
@@ -115,6 +116,7 @@ class BaseWorker(ABC):
         """
         Автоматически вызывает метод по имени в классе наследнике,
         если он был добавлен через register_task('имя задачи').
+        Кидает при ошибке и нормальном выполнении метода результат с Status.FINALLY
         :param task_name: Имя задачи(название метода).
         """
         handler = self._task_map.get(task_name)
