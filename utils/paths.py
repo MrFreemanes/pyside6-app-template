@@ -1,10 +1,12 @@
 import os
 
+from config.config import NAME_APP
 
-def path_to_dir(name: str = "MyApp") -> str:
+
+def path_to_dir() -> str:
     """Путь к папке AppData/Roaming/{name} и ее создание."""
     appdata_path = os.getenv("APPDATA")
-    log_dir = os.path.join(appdata_path, name)
+    log_dir = os.path.join(appdata_path, NAME_APP)
     return log_dir
 
 

@@ -6,6 +6,12 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QFileDialog
 
 
 class BaseGraph(ABC):
+    """
+    Класс для создания графиков через matplotlib.
+    В наследнике реализуются методы отрисовки.
+    Реализация методов который позволяют сократить код в наследнике.
+    """
+
     def __init__(self, target_widget: QWidget, title: str = 'График'):
         # Параметры.
         self._target_widget = target_widget
@@ -41,7 +47,6 @@ class BaseGraph(ABC):
         """Отрисовка итогового графика."""
         pass
 
-    @abstractmethod
     def plot_realtime(self, *args, **kwargs) -> None:
         """Отрисовка графика с промежуточными данными для наглядности."""
         pass
@@ -76,6 +81,7 @@ class BaseGraph(ABC):
         self.canvas.draw_idle()
 
     def save_graph(self) -> None:
+        """Сохраняет график по выбранному пути."""
         file_path, _ = QFileDialog.getSaveFileName(
             self._target_widget,
             "Сохранить график",

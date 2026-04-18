@@ -23,7 +23,7 @@ class BaseBridgeTest(TestCase):
     def test_send_task(self):
         send_task = Bridge.send_task
         self_mock = Mock()
-        send_task(self_mock, **self.task_kwargs)
+        self.assertTrue(send_task(self_mock, **self.task_kwargs))
 
         self.assertEqual(self_mock._task_q.put.call_args[0][0], self.task)
         self.assertEqual(
@@ -35,7 +35,7 @@ class BaseBridgeTest(TestCase):
         send_task = Bridge.send_task
         bad_task = 'asjf;ashkfhsdf'
         self_mock = Mock()
-        send_task(self_mock, bad_task, 123, task_type='asda')
+        self.assertFalse(send_task(self_mock, task_name=bad_task, params=123, task_type='asda'))
 
         self.assertEqual(
             self_mock.logger.error.call_args[0][0],
@@ -43,14 +43,29 @@ class BaseBridgeTest(TestCase):
         )
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],
-            f'Некорректные аргументы для {bad_task}'
+            f'Некорректные аргументы для задачи'
+        )
+
+    def test_send_task_unexpected_error(self):
+        send_task = Bridge.send_task
+        self_mock = Mock()
+        self_mock._task_q.put.side_effect = ZeroDivisionError()
+        self.assertFalse(send_task(self_mock, **self.task_kwargs))
+
+        self.assertEqual(
+            self_mock.error_signal.emit.call_args[0][0],
+            'Ошибка при отправке задачи'
+        )
+        self.assertEqual(
+            self_mock.logger.exception.call_args[0][0],
+            'Ошибка при отправке задачи в \"task_q\": %s'
         )
 
     def test_send_task_in_full_queue(self):
         send_task = Bridge.send_task
         self_mock = Mock()
         self_mock._task_q.put.side_effect = Full()
-        send_task(self_mock, **self.task_kwargs)
+        self.assertFalse(send_task(self_mock, **self.task_kwargs))
 
         self.assertEqual(
             self_mock.error_signal.emit.call_args[0][0],

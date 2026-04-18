@@ -8,6 +8,7 @@ class Graph(BaseGraph):
     """
     Пример реализации Класса BaseGraph.
     Изменено контекстное меню виджета FigureCanvas (self._canvas).
+    Возможность сохранения графика при нажатии правой кнопкой на него.
     """
 
     def __init__(self, target_widget: QWidget, *, title: str = 'График'):

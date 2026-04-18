@@ -13,10 +13,11 @@ from logs.logger_cfg import cfg
 class BaseWorker(ABC):
     """
     Класс-воркер. В наследнике реализуются методы с CPU-GPU-IO нагрузкой.
-    Использование (можно несколько процессов, но с уточнением типа в Task):
-    worker = Worker(q, q)
-    w = mp.Process(target=worker.run, daemon=True)
-    w.start()
+    Использование (можно несколько процессов с уточнением типа в Task):
+    worker = Worker(task_q, result_q)
+    worker.start()
+    ...
+    worker.stop()
     """
 
     def __init_subclass__(cls, **kwargs):
@@ -30,9 +31,11 @@ class BaseWorker(ABC):
 
     def __init__(self, task_q: mp.Queue, result_q: mp.Queue):
         """
-        :param task_q: Очередь с задачами
-        :param result_q: Очередь с результатами
+        :param task_q: Очередь с задачами.
+        :param result_q: Очередь с результатами.
+        :item: Задача отправленная из MainWindow.
         """
+        self.worker = None
         logging.config.dictConfig(cfg)
         self.logger = logging.getLogger(f'log_worker_{self.__class__.__name__}')
         self.logger.debug('%s инициализирован', self.__class__.__name__)
@@ -46,7 +49,7 @@ class BaseWorker(ABC):
         """
         Добавляет методу атрибут __task_name__ для создания __task_map для конкретной реализации класса.
         Применение: оборачивать метод, который будет вызываться
-        через bridge.send_task(Task(task_name=NAME_METHOD, ...)).
+        через run_task(Task(task_name=name, ...)).
         :param name: Task.task_name - имя по которому будет выполняться задача.
         :return: Возвращает тот же метод, добавив ему атрибут __task_name__
         """
@@ -59,9 +62,8 @@ class BaseWorker(ABC):
 
     def run(self) -> None:
         """
-        Основной цикл worker-процесса. Работает пока не получит None.
-        w = mp.Process(target=worker.run, daemon=True)
-        w.start()
+        Основной цикл worker-процесса. Забирает задачи проверяя их тип.
+        При неподходящем типе возвращает задачи в очередь.
         """
         while True:
             try:
@@ -71,7 +73,7 @@ class BaseWorker(ABC):
 
             if self.item is None:
                 break
-            if not self._can_handle():
+            if not self._can_handle(self.item):
                 self.task_q.put(self.item)
                 time.sleep(0.01)
                 continue
@@ -82,19 +84,21 @@ class BaseWorker(ABC):
 
     def start(self, daemon=True):
         """Создает процесс (run) и запускает его."""
-        worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
-        worker.start()
+        self.worker = mp.Process(target=self.run, daemon=daemon, name=f'{self.__class__.__name__}_process')
+        self.worker.start()
 
     def stop(self) -> None:
-        """Кидает None в очередь."""
-        self.task_q.put(None)
-        self.logger.debug('%s кинул None в очередь', self.__class__.__name__)
+        """Останавливает процесс."""
+        self.worker.terminate()
+        self.worker.join()
+        self.logger.debug('%s остановлен', self.__class__.__name__)
 
-    def send_result(self, result: Any, status: Status, progress: int, *, text_error: str | None = None) -> None:
+    def send_result(self, result: Any, status: Status, progress: int | None = None,
+                    *, text_error: str | None = None) -> None:
         """
         Отправляет дополненный Result в очередь.
         :param result: Результат вычислений окончательный/промежуточный.
-        :param status: Status.
+        :param status: Статус выполнения.
         :param progress: (1-100).
         :param text_error: Указывается только при status==error.
         """
@@ -104,28 +108,31 @@ class BaseWorker(ABC):
                    progress=progress,
                    text_error=text_error,
                    progress_handler=self.item.progress_handler,
-                   done_handler=self.item.done_handler)
+                   done_handler=self.item.done_handler,
+                   finally_handler=self.item.finally_handler)
         )
 
     def _distributor(self, task_name: str) -> None:
         """
         Автоматически вызывает метод по имени в классе наследнике,
         если он был добавлен через register_task('имя задачи').
+        Кидает при ошибке и нормальном выполнении метода результат с Status.FINALLY
         :param task_name: Имя задачи(название метода).
         """
         handler = self._task_map.get(task_name)
         if not handler:
-            self.result_q.put(Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {task_name}'))
+            self.send_result((), Status.FINALLY)
             self.logger.error('Неизвестная задача: %s', task_name)
             return
 
         try:
             handler(self)
         except Exception as e:
-            self.result_q.put(Result((), Status.ERROR, 100,
-                                     text_error=f'Ошибка при выполнении задачи {task_name}'))
-            self.logger.exception('Ошибка при выполнении задачи %s', task_name)
+            self.send_result((), Status.ERROR, text_error='Ошибка при выполнении задачи')
+            self.logger.exception('Ошибка при выполнении задачи %s, %s', task_name, e)
+        finally:
+            self.send_result((), Status.FINALLY)
 
-    def _can_handle(self) -> bool:
+    def _can_handle(self, item) -> bool:
         """Проверка типа задачи."""
-        return self.item.task_type.value == self.__class__.__name__
+        return item.task_type.value == self.__class__.__name__

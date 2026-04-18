@@ -73,6 +73,7 @@ class BaseWorkerTest(TestCase):
         distributor(self_mock, NAME_FUNC)
 
         handler_func_mock.assert_called_once()
+        self_mock.send_result.assert_called_once_with((), Status.FINALLY)
 
     def test_distributor_for_an_undefined_name(self):
         distributor = TestWorker._distributor
@@ -83,12 +84,33 @@ class BaseWorkerTest(TestCase):
         distributor(self_mock, NAME_FUNC)
 
         self.assertEqual(
-            self_mock.result_q.put.call_args[0][0],
-            Result((), Status.ERROR, 100, text_error=f'Неизвестная задача: {NAME_FUNC}')
-        )
-        self.assertEqual(
             self_mock.logger.error.call_args[0],
             ('Неизвестная задача: %s', NAME_FUNC)
+        )
+        self_mock.send_result.assert_called_once_with((), Status.FINALLY)
+
+    def test_send_result(self):
+        send_result = BaseWorker.send_result
+        self_mock = Mock()
+
+        result = ()
+        status = Status.ERROR
+        progress = 100
+        text_error = 'Error'
+        self_mock.item.progress_handler = 'progress_handler'
+        self_mock.item.done_handler = 'done_handler'
+        self_mock.item.finally_handler = 'finally_handler'
+
+        send_result(self_mock, result, status, progress, text_error=text_error)
+
+        self_mock.result_q.put.assert_called_once_with(
+            Result(result=result,
+                   status=status,
+                   progress=progress,
+                   text_error=text_error,
+                   progress_handler=self_mock.item.progress_handler,
+                   done_handler=self_mock.item.done_handler,
+                   finally_handler=self_mock.item.finally_handler)
         )
 
 

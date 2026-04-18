@@ -44,24 +44,40 @@ class BaseBridge(QObject):
         self._timer.timeout.connect(self._check_result)
         self._timer.start(self._interval)
 
-    def send_task(self, task_name: str, params: Any, *, task_type: TaskType = None,
-                  done_handler: Callable = None, progress_handler: Callable = None) -> None:
-        """Проверяет тип и отправляет задачу в очередь."""
+    def send_task(self, *, task_name: str, params: Any, task_type: TaskType = None,
+                  done_handler: Callable = None, progress_handler: Callable = None,
+                  finally_handler: Callable = None) -> bool:
+        """
+        Создает и отправляет задачу в очередь. Возвращает статус отправки.
+        :param task_name: Имя метода в наследнике BaseWorker.
+        :param params: Данные необходимые для работы в методе.
+        :param task_type: Имя worker.
+        :param done_handler: Метод для выполнения действия при возврате результата со статусом Status.DONE.
+        :param progress_handler: Метод для выполнения промежуточного действия
+                                 при возврате результата со статусом Status.RUN.
+        :param finally_handler: Метод для выполнения задач в случае ошибочной и безошибочной работы worker.
+        :return: True если задача ушла в очередь без ошибок, иначе False.
+        """
         try:
             task = get_task_from_parameters(task_name=task_name, params=params, task_type=task_type,
-                                            done_handler=done_handler, progress_handler=progress_handler)
+                                            done_handler=done_handler, progress_handler=progress_handler,
+                                            finally_handler=finally_handler)
 
             self._task_q.put(task, block=False)
             self.logger.debug('Задача отправлена в \"task_q\" с аргументами: %s', task)
+            return True
         except Full:
             self.error_signal.emit('Очередь задач переполнена')
             self.logger.warning('Очередь \"task_q\" переполнена')
+            return False
         except ValueError as e:
             self.logger.error('Некорректные аргументы: %s для %s', e, task_name)
-            self.error_signal.emit(f'Некорректные аргументы для {task_name}')
+            self.error_signal.emit(f'Некорректные аргументы для задачи')
+            return False
         except Exception as e:
             self.logger.exception('Ошибка при отправке задачи в \"task_q\": %s', e)
             self.error_signal.emit(f'Ошибка при отправке задачи')
+            return False
 
     def _check_result(self) -> None:
         """Проверить очередь на наличие результата и эмитить нужный сигнал."""

@@ -4,19 +4,20 @@ from PySide6.QtCore import Qt
 
 def attach_context_menu(widget: QWidget, action: dict) -> None:
     """
-    Привязка нового контекстного меню к виджету
+    Привязка нового контекстного меню к виджету.
+    Контекстное меню вызывается правой кнопкой мыши при нажатии на виджет.
 
     Как использовать:
     attach_context_menu(
         self.widget,
         {
-            "Сделать что-то": self.do_something,
-            "Другое действие": lambda: print("Нажато")
+            "Первое действие": self.do_something,
+            "Второе действие": lambda: print("Hi")
         }
     )
 
     :param widget: Qt-виджет
-    :param action: dict {"Название действия": callback}
+    :param action: dict {"Название действия": func}
     """
 
     widget.setContextMenuPolicy(Qt.CustomContextMenu)
