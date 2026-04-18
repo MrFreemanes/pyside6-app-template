@@ -14,7 +14,7 @@ class BaseWorker(ABC):
     """
     Класс-воркер. В наследнике реализуются методы с CPU-GPU-IO нагрузкой.
     Использование (можно несколько процессов с уточнением типа в Task):
-    worker = Worker(q, q)
+    worker = Worker(task_q, result_q)
     worker.start()
     ...
     worker.stop()

@@ -4,7 +4,7 @@ from typing import Any
 
 from utils.config_utils import check_handler
 
-NAME_APP = "MyApp"
+NAME_APP = "MyApp" # Название папки куда сохраняются логи
 
 
 class Status(Enum):
