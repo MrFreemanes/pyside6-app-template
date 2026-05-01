@@ -1,5 +1,5 @@
 from gui.base_window import BaseWindow
-from gui.ui.ui_untitled import Ui_MainWindow
+from gui.untitled.ui_untitled import Ui_MainWindow
 from gui.widgets.graphs.graph import Graph
 from config.config import Result
 
